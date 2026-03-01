@@ -294,12 +294,12 @@ export default function AdminReportsPage() {
 
           <div className="mt-3 flex items-center gap-2">
             <button
-              disabled={savingId === rep.id}
-              onClick={() => toggleHidden(rep, !rv.hidden)}
-              className="rounded-full border px-4 py-2 text-xs"
-            >
-              {rv.hidden ? "Mostrar en mapa" : "Ocultar del mapa"}
-            </button>
+  disabled={savingId === rep.id || !rep.reviews}
+  onClick={() => rep.reviews && toggleHidden(rep, !rep.reviews.hidden)}
+  className="rounded-full border px-4 py-2 text-xs"
+>
+  {rep.reviews?.hidden ? "Mostrar en mapa" : "Ocultar del mapa"}
+</button>
 
             {rv.hidden && (
               <span className="text-xs font-semibold text-red-700">Oculta</span>
