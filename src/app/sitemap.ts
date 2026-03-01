@@ -1,4 +1,3 @@
-// src/app/sitemap.ts
 import type { MetadataRoute } from "next";
 
 function siteUrl() {
@@ -18,7 +17,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/", priority: 1.0, changeFrequency: "weekly" as const },
     { path: "/map", priority: 0.9, changeFrequency: "daily" as const },
 
-    // Legales / confianza
     { path: "/aviso-legal", priority: 0.5, changeFrequency: "yearly" as const },
     { path: "/privacidad", priority: 0.5, changeFrequency: "yearly" as const },
     { path: "/terminos", priority: 0.5, changeFrequency: "yearly" as const },

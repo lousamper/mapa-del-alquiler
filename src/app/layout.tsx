@@ -56,6 +56,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  other: {
+    "google-adsense-account": process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID ?? "",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
