@@ -13,17 +13,20 @@ export default function AdSlot({
   className?: string;
 }) {
   useEffect(() => {
-    // Solo intentar renderizar si aceptaron "all"
+  function tryLoad() {
     const consent = (localStorage.getItem(STORAGE_KEY) as Consent) || "unknown";
     if (consent !== "all") return;
 
     try {
       // @ts-ignore
       (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch {
-      // si falla (adblock, etc), no pasa nada
-    }
-  }, []);
+    } catch {}
+  }
+
+  tryLoad();
+  window.addEventListener("cookie-consent-updated", tryLoad);
+  return () => window.removeEventListener("cookie-consent-updated", tryLoad);
+}, []);
 
   return (
     <div className={className}>

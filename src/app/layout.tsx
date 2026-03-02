@@ -6,6 +6,7 @@ import CookieBanner from "@/components/CookieBanner";
 import AnalyticsGate from "@/components/AnalyticsGate";
 import AdsGate from "@/components/AdsGate";
 import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -68,6 +69,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <CookieBanner />
         <AnalyticsGate id={process.env.NEXT_PUBLIC_GA_ID ?? ""} />
+
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT ? (
+  <Script
+    async
+    src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
+    crossOrigin="anonymous"
+    strategy="afterInteractive"
+  />
+) : null}
+
         <AdsGate clientId={process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? ""} />
 
         {children}
