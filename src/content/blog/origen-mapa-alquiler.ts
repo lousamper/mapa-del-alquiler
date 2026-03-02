@@ -39,7 +39,7 @@ En otras ciudades con fuerte presión turística, como Palma o Valencia, existen
 
 Existe una percepción generalizada de que los principales problemas del alquiler provienen de la ocupación ilegal. Sin embargo, los datos cuentan otra historia:
 
-> Según distintas estimaciones, solo alrededor del 0,4 % de las viviendas en España están ocupadas ilegalmente, una cifra muy inferior a la percepción social.
+> Según distintas estimaciones, solo alrededor del 0,4 % de las viviendas en España están ocupadas ilegalmente, una cifra muy inferior a la percepción social.*
 
 La mayoría de los impagos no se deben a ocupación profesional, sino a sobreendeudamiento de los inquilinos, provocado por alquileres que superan el 40–50 % de sus ingresos mensuales.
 
