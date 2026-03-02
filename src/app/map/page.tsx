@@ -20,7 +20,7 @@ export default function MapPage() {
       {/* Ad manual debajo del mapa */}
 <div className="mx-auto max-w-6xl px-6 pb-8">
   <div className="mt-6 rounded-2xl border border-black/10 bg-white p-4">
-    <div className="mb-2 text-xs text-navy/60">Publicidad</div>
+    <div className="mb-2 text-xs text-white">Publicidad</div>
 
     <AdSlot
       slot="7416575414" // 👈 ESTE es el slot real
