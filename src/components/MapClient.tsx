@@ -83,6 +83,8 @@ function formatPropertyType(v: Review["property_type"]) {
 function containsPII(text: string) {
   const t = (text ?? "").toLowerCase();
 
+  
+
   const email = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/i;
   const phone = /(\+?\d[\d\s().-]{7,}\d)/;
   const url = /\bhttps?:\/\/|www\.|instagram\.com|tiktok\.com|facebook\.com|wa\.me\b/i;
@@ -681,11 +683,13 @@ export default function MapClient() {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-navy">Tu email</label>
                 <input
-                  value={reportEmail}
-                  onChange={(e) => setReportEmail(e.target.value)}
-                  className="w-full rounded-xl border border-black/10 bg-[#f5f5f5] px-4 py-3 text-navy outline-none"
-                  placeholder="Para poder mantenerte al tanto"
-                />
+  type="email"
+  required
+  value={reportEmail}
+  onChange={(e) => setReportEmail(e.target.value)}
+  className="w-full rounded-xl border border-black/10 bg-[#f5f5f5] px-4 py-3 text-navy outline-none"
+  placeholder="Tu email (obligatorio para avisarte sobre el estado de tu reporte)"
+/>
               </div>
 
               <div className="space-y-2">
