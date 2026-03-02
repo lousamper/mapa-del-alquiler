@@ -232,6 +232,28 @@ export default function Home() {
           No. Usar la plataforma es gratuita.
         </p>
       </details>
+
+      <div className="mt-3 space-y-1">
+        <details className="rounded-2xl bg-white border border-black/10 p-5">
+  <summary className="cursor-pointer list-none font-semibold text-navy">
+    ¿Por qué existe El Mapa del Alquiler?
+  </summary>
+  <p className="mt-3 text-sm text-navy/80">
+    El Mapa del Alquiler nace para aportar transparencia al mercado del alquiler en España
+    y ayudar a inquilinos y propietarios a tomar decisiones con más información.
+  </p>
+  <p className="mt-2 text-sm text-navy/80">
+    Compartir experiencias reales reduce conflictos, expectativas irreales
+    y situaciones injustas antes de firmar un contrato.
+  </p>
+  <p className="mt-3 text-sm font-semibold text-navy">
+    <a href="/blog/origen-mapa-alquiler" className="underline hover:opacity-80">
+      Leer más
+    </a>
+  </p>
+</details>
+      </div>
+      
     </div>
 
     <div className="mt-10 rounded-2xl bg-white border border-black/10 p-6">

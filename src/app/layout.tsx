@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
 import AnalyticsGate from "@/components/AnalyticsGate";
 import AdsGate from "@/components/AdsGate";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -71,6 +72,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {children}
         <Footer />
+                {/* ✅ Vercel Analytics */}
+        <Analytics />
       </body>
     </html>
   );

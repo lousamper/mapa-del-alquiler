@@ -25,6 +25,7 @@ export default function Navbar() {
       { href: "/map", label: "Ver mapa" },
       { href: "/#contacto", label: "Contacto" },
       { href: "/#faqs", label: "FAQs" },
+      { href: "/blog", label: "Blog" }, // 👈 NUEVO LINK
     ];
 
     const adminOnly = role === "admin" ? [{ href: "/admin", label: "Admin" }] : [];
@@ -42,9 +43,8 @@ export default function Navbar() {
 
     const all = [...base, ...adminOnly, ...authed, ...tenantOnly, ...login];
 
-    // ✅ evitar duplicados por href (soluciona el error de key /admin)
-    const unique = Array.from(new Map(all.map((x) => [x.href, x])).values());
-    return unique;
+    // ✅ evitar duplicados por href
+    return Array.from(new Map(all.map((x) => [x.href, x])).values());
   }, [user, role, profileHref]);
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function Navbar() {
       </header>
 
       <div
-        className={`fixed inset-0 z-[60] bg-black/40 transition-opacity motion-reduce:transition-none ${
+        className={`fixed inset-0 z-[60] bg-black/40 transition-opacity ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={() => setOpen(false)}
@@ -97,7 +97,7 @@ export default function Navbar() {
       />
 
       <aside
-        className={`fixed right-0 top-0 z-[70] h-dvh w-[280px] max-w-[80vw] bg-white shadow-2xl transition-transform duration-300 motion-reduce:transition-none ${
+        className={`fixed right-0 top-0 z-[70] h-dvh w-[280px] max-w-[80vw] bg-white shadow-2xl transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         role="dialog"
@@ -145,4 +145,3 @@ export default function Navbar() {
     </>
   );
 }
-
