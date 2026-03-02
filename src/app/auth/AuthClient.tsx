@@ -20,7 +20,7 @@ export default function AuthClient() {
 
   const defaultRoleFromQuery = (params.get("role") as Role | null) ?? null;
 
-  const [mode, setMode] = useState<Mode>("signup");
+  const [mode, setMode] = useState<Mode>("login");
   const [role, setRole] = useState<Role>(defaultRoleFromQuery ?? "tenant");
 
   const [email, setEmail] = useState("");
@@ -47,11 +47,11 @@ export default function AuthClient() {
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   const { data, error: signUpError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${siteUrl}/account`,
-    },
+  email,
+  password,
+  options: {
+    emailRedirectTo: `${siteUrl}/account`,
+  },
   });
 
   if (signUpError) throw signUpError;
@@ -101,10 +101,18 @@ export default function AuthClient() {
       if (profile.role === "admin") router.push("/admin");
       else router.push(profile.role === "tenant" ? "/profile" : "/owner");
     } catch (err: any) {
-      setError(err?.message ?? "Ocurrió un error. Intenta de nuevo.");
-    } finally {
-      setLoading(false);
-    }
+  console.error(err);
+
+  const msg = err?.message ?? "Ocurrió un error. Intenta de nuevo.";
+
+  if (msg.toLowerCase().includes("row-level security")) {
+    setError("Estamos teniendo un problema creando tu perfil. Intenta de nuevo en unos segundos.");
+  } else {
+    setError(msg);
+  }
+} finally {
+  setLoading(false);
+}
   }
 
   async function handleForgotPassword() {
