@@ -160,7 +160,6 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
     setLoading(false);
 
     if (error) {
-      console.error("loadReviews error:", error);
       setReviews([]);
       return;
     }
