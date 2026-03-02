@@ -93,12 +93,24 @@ if (signUpError) throw signUpError;
     } catch (err: any) {
   console.error(err);
 
-  const msg = err?.message ?? "Ocurrió un error. Intenta de nuevo.";
+  const rawMsg = err?.message ?? "";
+  const msg = rawMsg.toLowerCase();
 
-  if (msg.toLowerCase().includes("row-level security")) {
-    setError("Estamos teniendo un problema creando tu perfil. Intenta de nuevo en unos segundos.");
+  if (msg.includes("row-level security")) {
+    setError(
+      "Estamos teniendo un problema creando tu perfil. Intenta de nuevo en unos segundos."
+    );
+  } else if (msg.includes("invalid login credentials")) {
+    setError(
+      "No encontramos una cuenta con ese email o la contraseña no es correcta. Si no tienes cuenta, regístrate."
+    );
+  } else if (msg.includes("email not confirmed")) {
+    setError(
+      "Tu cuenta aún no está confirmada. Revisa tu email para activarla."
+    );
   } else {
-    setError(msg);
+    // fallback genérico (mejor que mostrar errores técnicos)
+    setError("Ocurrió un error. Intenta de nuevo.");
   }
 } finally {
   setLoading(false);
