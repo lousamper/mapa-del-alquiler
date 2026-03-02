@@ -43,37 +43,44 @@ export default function AuthClient() {
 
     try {
       if (mode === "signup") {
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (signUpError) throw signUpError;
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-        const userId = data.user?.id;
-        if (!userId) {
-          throw new Error(
-            "No se pudo completar el registro. Revisa tu email por si requiere verificación."
-          );
-        }
+  const { data, error: signUpError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${siteUrl}/account`,
+    },
+  });
 
-        const alias = generateAlias(role);
+  if (signUpError) throw signUpError;
 
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: userId,
-          role,
-          alias,
-        });
+  const userId = data.user?.id;
+  if (!userId) {
+    throw new Error(
+      "No se pudo completar el registro. Revisa tu email por si requiere verificación."
+    );
+  }
 
-        if (profileError) throw profileError;
+  const alias = generateAlias(role);
 
-        setMode("login");
-        setEmail("");
-        setPassword("");
-        setInfo(
-          "Te enviamos un email para confirmar tu cuenta. Revisa tu bandeja y luego inicia sesión."
-        );
-        return;
-      }
+  const { error: profileError } = await supabase.from("profiles").insert({
+    id: userId,
+    role,
+    alias,
+  });
+
+  if (profileError) throw profileError;
+
+  setMode("login");
+  setEmail("");
+  setPassword("");
+  setInfo(
+    "Te enviamos un email para confirmar tu cuenta. Revisa tu bandeja y luego inicia sesión."
+  );
+  return;
+}
 
       // LOGIN
       const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
