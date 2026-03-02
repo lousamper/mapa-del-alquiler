@@ -130,7 +130,9 @@ export default function MapClient() {
 
   const filtered = useMemo(() => {
     return reviews.filter((r) => {
-      if (!r.lat || !r.lng) return false;
+      const lat = Number(r.lat);
+const lng = Number(r.lng);
+if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
       if (propertyType !== "all" && r.property_type !== propertyType) return false;
       if (rentalType !== "all" && r.rental_type !== rentalType) return false;
       if (minRating !== "all" && r.rating < minRating) return false;
@@ -154,8 +156,6 @@ export default function MapClient() {
       .order("created_at", { ascending: false })
       .limit(500);
 
-    console.log("loadReviews error:", error);
-    console.log("loadReviews rows:", data?.length);
 
     setLoading(false);
 
@@ -468,7 +468,7 @@ export default function MapClient() {
               const canEditResponse = role === "owner" && !!userId && response?.owner_id === userId;
 
               return (
-                <Marker key={r.id} position={[r.lat!, r.lng!]}>
+                <Marker key={r.id} position={[Number(r.lat), Number(r.lng)]}>
                   <Popup>
                     {/* ✅ Contenedor con altura fija + scroll interno */}
                     <div className="w-full max-w-[260px] sm:w-[320px] sm:max-w-none">
