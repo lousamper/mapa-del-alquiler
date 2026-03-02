@@ -43,18 +43,17 @@ export default function AuthClient() {
 
     try {
       if (mode === "signup") {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-  const { data, error: signUpError } = await supabase.auth.signUp({
+const { data, error: signUpError } = await supabase.auth.signUp({
   email,
   password,
   options: {
+    data: { role }, // <-- esto lo lee el trigger
     emailRedirectTo: `${siteUrl}/account`,
   },
-  });
-
-  if (signUpError) throw signUpError;
+});
+if (signUpError) throw signUpError;
 
   const userId = data.user?.id;
   if (!userId) {
@@ -63,15 +62,6 @@ export default function AuthClient() {
     );
   }
 
-  const alias = generateAlias(role);
-
-  const { error: profileError } = await supabase.from("profiles").insert({
-    id: userId,
-    role,
-    alias,
-  });
-
-  if (profileError) throw profileError;
 
   setMode("login");
   setEmail("");
