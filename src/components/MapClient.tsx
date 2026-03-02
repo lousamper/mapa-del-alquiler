@@ -83,8 +83,6 @@ function formatPropertyType(v: Review["property_type"]) {
 function containsPII(text: string) {
   const t = (text ?? "").toLowerCase();
 
-  
-
   const email = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/i;
   const phone = /(\+?\d[\d\s().-]{7,}\d)/;
   const url = /\bhttps?:\/\/|www\.|instagram\.com|tiktok\.com|facebook\.com|wa\.me\b/i;
@@ -92,7 +90,6 @@ function containsPII(text: string) {
 
   return email.test(t) || phone.test(t) || url.test(t) || contactWords.test(t);
 }
-
 
 export default function MapClient() {
   const [q, setQ] = useState("");
@@ -157,8 +154,18 @@ export default function MapClient() {
       .order("created_at", { ascending: false })
       .limit(500);
 
+    console.log("loadReviews error:", error);
+    console.log("loadReviews rows:", data?.length);
+
     setLoading(false);
-    if (!error && data) setReviews(data as any);
+
+    if (error) {
+      console.error("loadReviews error:", error);
+      setReviews([]);
+      return;
+    }
+
+    setReviews((data ?? []) as any);
   }
 
   // ✅ cargar auth/role (no rompe si no hay login)
@@ -215,6 +222,18 @@ export default function MapClient() {
       return;
     }
 
+    const email = reportEmail.trim();
+    if (!email) {
+      setReportError("Por favor, deja tu email para poder avisarte de la resolución del reporte.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setReportError("Email inválido. Revisa y prueba de nuevo.");
+      return;
+    }
+
     setReportSending(true);
     setReportInfo(null);
     setReportError(null);
@@ -233,7 +252,7 @@ export default function MapClient() {
       const { error } = await supabase.from("review_reports").insert({
         review_id: reportReview.id,
         reporter_id: reporterId,
-        reporter_email: reportEmail.trim() || null,
+        reporter_email: email,
         reporter_role: reporterRole,
         reason,
         details: reportDetails.trim() || null,
@@ -683,13 +702,13 @@ export default function MapClient() {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-navy">Tu email</label>
                 <input
-  type="email"
-  required
-  value={reportEmail}
-  onChange={(e) => setReportEmail(e.target.value)}
-  className="w-full rounded-xl border border-black/10 bg-[#f5f5f5] px-4 py-3 text-navy outline-none"
-  placeholder="Tu email (obligatorio para avisarte sobre el estado de tu reporte)"
-/>
+                  type="email"
+                  required
+                  value={reportEmail}
+                  onChange={(e) => setReportEmail(e.target.value)}
+                  className="w-full rounded-xl border border-black/10 bg-[#f5f5f5] px-4 py-3 text-navy outline-none"
+                  placeholder="Tu email (obligatorio para avisarte sobre el estado de tu reporte)"
+                />
               </div>
 
               <div className="space-y-2">
