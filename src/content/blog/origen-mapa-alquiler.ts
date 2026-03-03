@@ -6,7 +6,7 @@ export const meta = {
 };
 
 export const content = `
-Alquilar una vivienda en España se ha convertido en una experiencia cada vez más incierta. Falta de información, contratos poco claros y una presión económica creciente hacen que muchos inquilinos acepten condiciones injustas simplemente por necesidad.
+Alquilar en España se ha convertido en una experiencia cada vez más incierta. Falta de información, contratos poco claros y una presión económica creciente hacen que muchos inquilinos acepten condiciones injustas simplemente por necesidad.
 
 **El Mapa del Alquiler nace como respuesta a esta realidad**, con el objetivo de aportar transparencia al mercado del alquiler y devolver poder a quienes hoy alquilan en desventaja.
 
