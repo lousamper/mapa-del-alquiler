@@ -31,13 +31,21 @@ type Review = {
   content: string;
 };
 
-// ✅ helper geocode (añadido)
+// ✅ helper geocode (FIX)
 async function geocodeAddress(full: string) {
   const res = await fetch(`/api/geocode?q=${encodeURIComponent(full)}`);
   const data = await res.json();
   const first = data?.results?.[0];
-  if (!first?.lat || !first?.lng) return null;
-  return { lat: first.lat, lng: first.lng };
+
+  const lat = first?.lat;
+  const lng = first?.lng;
+
+  const latNum = lat === null || lat === undefined ? NaN : Number(lat);
+  const lngNum = lng === null || lng === undefined ? NaN : Number(lng);
+
+  if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return null;
+
+  return { lat: latNum, lng: lngNum };
 }
 
 // ✅ PII guard (añadido)
@@ -230,14 +238,21 @@ export default function TenantProfilePage() {
     }
 
     // ✅ Bloqueo de datos personales (añadido)
-if (containsPII(editForm.content)) {
-  setErrorMsg("Por privacidad, no incluyas emails, teléfonos, enlaces ni datos personales en la reseña.");
-  setSavingEdit(false);
-  return;
-}
+    if (containsPII(editForm.content)) {
+      setErrorMsg("Por privacidad, no incluyas emails, teléfonos, enlaces ni datos personales en la reseña.");
+      setSavingEdit(false);
+      return;
+    }
 
-    // ✅ Recalcular lat/lng con CP (si lo completaron)
-    const full = `${editForm.address.trim()}, ${editPostalCode.trim()}, ${editForm.city.trim()}, ${editForm.province.trim()}, España`;
+    // ✅ Recalcular lat/lng con CP (si lo completaron) (FIX: sin comas vacías)
+    const parts = [
+      editForm.address.trim(),
+      editPostalCode.trim() || null,
+      editForm.city.trim(),
+      editForm.province.trim(),
+      "España",
+    ].filter(Boolean) as string[];
+    const full = parts.join(", ");
     const geo = await geocodeAddress(full);
 
     const { error } = await supabase
@@ -282,7 +297,16 @@ if (containsPII(editForm.content)) {
     }
 
     setReviews((prev) =>
-      prev.map((r) => (r.id === editingId ? ({ ...(r as any), ...(editForm as any) } as Review) : r))
+      prev.map((r) =>
+        r.id === editingId
+          ? ({
+              ...(r as any),
+              ...(editForm as any),
+              lat: geo?.lat ?? null,
+              lng: geo?.lng ?? null,
+            } as any)
+          : r
+      )
     );
     setInfo("Reseña actualizada.");
     cancelEdit();
@@ -370,13 +394,10 @@ if (containsPII(editForm.content)) {
                           </p>
                           <p className="mt-1 text-xs text-navy/60">
                             {propertyTypeLabel(r.property_type)} · {rentalTypeLabel(r.rental_type)} ·{" "}
-                            {r.price_monthly_eur != null
-                              ? `${r.price_monthly_eur}€ / mes`
-                              : "Precio no indicado"}
+                            {r.price_monthly_eur != null ? `${r.price_monthly_eur}€ / mes` : "Precio no indicado"}
                           </p>
                           <p className="mt-1 text-xs text-navy/60">
-                            Viviste entre {r.lived_from_year} y {r.lived_to_year} ·{" "}
-                            {stayLengthLabel(r.stay_length)}
+                            Viviste entre {r.lived_from_year} y {r.lived_to_year} · {stayLengthLabel(r.stay_length)}
                           </p>
                         </div>
 
@@ -410,8 +431,7 @@ if (containsPII(editForm.content)) {
                               Rating: {r.rating}/5
                             </span>
                             <span className="rounded-full border border-black/10 px-3 py-1 text-navy/80">
-                              Recomendaría:{" "}
-                              {r.would_recommend == null ? "—" : r.would_recommend ? "Sí" : "No"}
+                              Recomendaría: {r.would_recommend == null ? "—" : r.would_recommend ? "Sí" : "No"}
                             </span>
                             <span className="rounded-full border border-black/10 px-3 py-1 text-navy/80">
                               Ruido: {r.noise_level ?? "—"}
@@ -420,12 +440,7 @@ if (containsPII(editForm.content)) {
                               Mantenimiento: {r.maintenance_rating ?? "—"}
                             </span>
                             <span className="rounded-full border border-black/10 px-3 py-1 text-navy/80">
-                              Fianza:{" "}
-                              {r.deposit_returned == null
-                                ? "—"
-                                : r.deposit_returned
-                                  ? "Devuelta"
-                                  : "No devuelta"}
+                              Fianza: {r.deposit_returned == null ? "—" : r.deposit_returned ? "Devuelta" : "No devuelta"}
                             </span>
                           </div>
                         </>
@@ -436,9 +451,7 @@ if (containsPII(editForm.content)) {
                               <label className="text-sm font-semibold text-navy">Dirección</label>
                               <input
                                 value={editForm.address ?? ""}
-                                onChange={(e) =>
-                                  setEditForm((p) => ({ ...p, address: e.target.value }))
-                                }
+                                onChange={(e) => setEditForm((p) => ({ ...p, address: e.target.value }))}
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                               />
                             </div>
@@ -453,8 +466,7 @@ if (containsPII(editForm.content)) {
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                                 placeholder="Ej: 46001"
                               />
-                              <p className="text-xs text-navy/60">
-                              </p>
+                              <p className="text-xs text-navy/60"></p>
                             </div>
 
                             <div className="space-y-2">
@@ -464,8 +476,7 @@ if (containsPII(editForm.content)) {
                                 onChange={(e) =>
                                   setEditForm((p) => ({
                                     ...p,
-                                    price_monthly_eur:
-                                      e.target.value === "" ? null : Number(e.target.value),
+                                    price_monthly_eur: e.target.value === "" ? null : Number(e.target.value),
                                   }))
                                 }
                                 inputMode="decimal"
@@ -477,9 +488,7 @@ if (containsPII(editForm.content)) {
                               <label className="text-sm font-semibold text-navy">Ciudad</label>
                               <input
                                 value={editForm.city ?? ""}
-                                onChange={(e) =>
-                                  setEditForm((p) => ({ ...p, city: e.target.value }))
-                                }
+                                onChange={(e) => setEditForm((p) => ({ ...p, city: e.target.value }))}
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                               />
                             </div>
@@ -488,9 +497,7 @@ if (containsPII(editForm.content)) {
                               <label className="text-sm font-semibold text-navy">Provincia</label>
                               <input
                                 value={editForm.province ?? ""}
-                                onChange={(e) =>
-                                  setEditForm((p) => ({ ...p, province: e.target.value }))
-                                }
+                                onChange={(e) => setEditForm((p) => ({ ...p, province: e.target.value }))}
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                               />
                             </div>
@@ -499,9 +506,7 @@ if (containsPII(editForm.content)) {
                               <label className="text-sm font-semibold text-navy">Vivienda</label>
                               <select
                                 value={(editForm.property_type ?? r.property_type) as any}
-                                onChange={(e) =>
-                                  setEditForm((p) => ({ ...p, property_type: e.target.value as any }))
-                                }
+                                onChange={(e) => setEditForm((p) => ({ ...p, property_type: e.target.value as any }))}
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                               >
                                 <option value="habitacion">Habitación</option>
@@ -513,9 +518,7 @@ if (containsPII(editForm.content)) {
                               <label className="text-sm font-semibold text-navy">Contrato</label>
                               <select
                                 value={(editForm.rental_type ?? r.rental_type) as any}
-                                onChange={(e) =>
-                                  setEditForm((p) => ({ ...p, rental_type: e.target.value as any }))
-                                }
+                                onChange={(e) => setEditForm((p) => ({ ...p, rental_type: e.target.value as any }))}
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                               >
                                 <option value="temporal">Temporal</option>
@@ -527,12 +530,7 @@ if (containsPII(editForm.content)) {
                               <label className="text-sm font-semibold text-navy">Desde (año)</label>
                               <input
                                 value={editForm.lived_from_year ?? r.lived_from_year}
-                                onChange={(e) =>
-                                  setEditForm((p) => ({
-                                    ...p,
-                                    lived_from_year: Number(e.target.value),
-                                  }))
-                                }
+                                onChange={(e) => setEditForm((p) => ({ ...p, lived_from_year: Number(e.target.value) }))}
                                 inputMode="numeric"
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                               />
@@ -542,9 +540,7 @@ if (containsPII(editForm.content)) {
                               <label className="text-sm font-semibold text-navy">Hasta (año)</label>
                               <input
                                 value={editForm.lived_to_year ?? r.lived_to_year}
-                                onChange={(e) =>
-                                  setEditForm((p) => ({ ...p, lived_to_year: Number(e.target.value) }))
-                                }
+                                onChange={(e) => setEditForm((p) => ({ ...p, lived_to_year: Number(e.target.value) }))}
                                 inputMode="numeric"
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                               />
@@ -554,9 +550,7 @@ if (containsPII(editForm.content)) {
                               <label className="text-sm font-semibold text-navy">Duración</label>
                               <select
                                 value={(editForm.stay_length ?? r.stay_length) as any}
-                                onChange={(e) =>
-                                  setEditForm((p) => ({ ...p, stay_length: e.target.value as any }))
-                                }
+                                onChange={(e) => setEditForm((p) => ({ ...p, stay_length: e.target.value as any }))}
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                               >
                                 <option value="menos_6_meses">Hasta 6 meses</option>
@@ -569,9 +563,7 @@ if (containsPII(editForm.content)) {
                               <label className="text-sm font-semibold text-navy">Rating general</label>
                               <select
                                 value={Number(editForm.rating ?? r.rating)}
-                                onChange={(e) =>
-                                  setEditForm((p) => ({ ...p, rating: Number(e.target.value) }))
-                                }
+                                onChange={(e) => setEditForm((p) => ({ ...p, rating: Number(e.target.value) }))}
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                               >
                                 {[5, 4, 3, 2, 1].map((n) => (
@@ -595,8 +587,7 @@ if (containsPII(editForm.content)) {
                                 onChange={(e) =>
                                   setEditForm((p) => ({
                                     ...p,
-                                    would_recommend:
-                                      e.target.value === "na" ? null : e.target.value === "yes",
+                                    would_recommend: e.target.value === "na" ? null : e.target.value === "yes",
                                   }))
                                 }
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
@@ -635,8 +626,7 @@ if (containsPII(editForm.content)) {
                                 onChange={(e) =>
                                   setEditForm((p) => ({
                                     ...p,
-                                    maintenance_rating:
-                                      e.target.value === "" ? null : Number(e.target.value),
+                                    maintenance_rating: e.target.value === "" ? null : Number(e.target.value),
                                   }))
                                 }
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
@@ -663,8 +653,7 @@ if (containsPII(editForm.content)) {
                                 onChange={(e) =>
                                   setEditForm((p) => ({
                                     ...p,
-                                    deposit_returned:
-                                      e.target.value === "na" ? null : e.target.value === "yes",
+                                    deposit_returned: e.target.value === "na" ? null : e.target.value === "yes",
                                   }))
                                 }
                                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
@@ -680,9 +669,7 @@ if (containsPII(editForm.content)) {
                             <label className="text-sm font-semibold text-navy">Tu reseña</label>
                             <textarea
                               value={editForm.content ?? r.content}
-                              onChange={(e) =>
-                                setEditForm((p) => ({ ...p, content: e.target.value }))
-                              }
+                              onChange={(e) => setEditForm((p) => ({ ...p, content: e.target.value }))}
                               className="w-full min-h-[140px] rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
                             />
                           </div>

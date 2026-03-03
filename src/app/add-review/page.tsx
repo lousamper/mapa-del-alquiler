@@ -16,13 +16,21 @@ const selectClass =
 const textareaClass =
   "w-full min-h-[140px] rounded-xl border border-black/10 bg-[#f5f5f5] px-4 py-3 text-navy outline-none focus:ring-2 focus:ring-[color:var(--accent)]";
 
-// ✅ GEOCODE helper (añadido)
+// ✅ GEOCODE helper (FIX)
 async function geocodeAddress(full: string) {
   const res = await fetch(`/api/geocode?q=${encodeURIComponent(full)}`);
   const data = await res.json();
   const first = data?.results?.[0];
-  if (!first?.lat || !first?.lng) return null;
-  return { lat: first.lat, lng: first.lng };
+
+  const lat = first?.lat;
+  const lng = first?.lng;
+
+  const latNum = lat === null || lat === undefined ? NaN : Number(lat);
+  const lngNum = lng === null || lng === undefined ? NaN : Number(lng);
+
+  if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return null;
+
+  return { lat: latNum, lng: lngNum };
 }
 
 // ✅ PII guard (añadido)
@@ -57,7 +65,6 @@ export default function AddReviewPage() {
   const [city, setCity] = useState("");
   const [province, setProvince] = useState("");
   const [postalCode, setPostalCode] = useState("");
-
 
   const [propertyType, setPropertyType] = useState<"habitacion" | "piso">("piso");
   const [rentalType, setRentalType] = useState<"temporal" | "largo_plazo">("largo_plazo");
@@ -120,9 +127,8 @@ export default function AddReviewPage() {
     if (!province.trim()) return "Completa la provincia.";
     const cp = postalCode.trim();
     if (cp && !/^\d{5}$/.test(cp)) {
-  return "El código postal debe tener 5 números (ej: 28004).";
-}
-
+      return "El código postal debe tener 5 números (ej: 28004).";
+    }
 
     const price = priceMonthly.trim() ? Number(priceMonthly) : null;
     if (priceMonthly.trim() && (!Number.isFinite(price) || (price as number) <= 0)) {
@@ -141,9 +147,9 @@ export default function AddReviewPage() {
     }
 
     // ✅ Bloqueo de datos personales (añadido)
-if (containsPII(content)) {
-  return "Por privacidad, no incluyas emails, teléfonos, enlaces ni datos personales en la reseña.";
-}
+    if (containsPII(content)) {
+      return "Por privacidad, no incluyas emails, teléfonos, enlaces ni datos personales en la reseña.";
+    }
 
     // “Guardrails” básicos (bloquea)
     const lower = content.toLowerCase();
@@ -175,8 +181,15 @@ if (containsPII(content)) {
     try {
       const price = priceMonthly.trim() ? Number(priceMonthly) : null;
 
-      // ✅ Geocode justo antes del insert (añadido)
-      const full = `${address.trim()}, ${postalCode.trim()}, ${city.trim()}, ${province.trim()}, España`;
+      // ✅ Geocode justo antes del insert (FIX: armamos string sin comas vacías)
+      const parts = [
+        address.trim(),
+        postalCode.trim() || null,
+        city.trim(),
+        province.trim(),
+        "España",
+      ].filter(Boolean) as string[];
+      const full = parts.join(", ");
       const geo = await geocodeAddress(full);
 
       const { error: insertErr } = await supabase.from("reviews").insert({
@@ -201,7 +214,7 @@ if (containsPII(content)) {
         maintenance_rating: maintenanceRating === "" ? null : maintenanceRating,
         deposit_returned: depositReturned === "na" ? null : depositReturned === "yes",
 
-        // ✅ lat/lng (añadido)
+        // ✅ lat/lng
         lat: geo?.lat ?? null,
         lng: geo?.lng ?? null,
 
@@ -237,35 +250,34 @@ if (containsPII(content)) {
             <h2 className="text-lg font-extrabold text-navy">Ubicación</h2>
 
             <div className="space-y-2">
-  <label className="text-sm font-semibold text-navy">Dirección y código postal</label>
+              <label className="text-sm font-semibold text-navy">Dirección y código postal</label>
 
-  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-    <div className="sm:col-span-2">
-      <input
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-        className={inputClass}
-        placeholder="Ej: Calle X 10, 1"
-      />
-    </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="sm:col-span-2">
+                  <input
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className={inputClass}
+                    placeholder="Ej: Calle X 10, 1"
+                  />
+                </div>
 
-    <div>
-      <input
-        value={postalCode}
-        onChange={(e) => setPostalCode(e.target.value)}
-        className={inputClass}
-        placeholder="Ej: 28004"
-        inputMode="numeric"
-        maxLength={5}
-      />
-    </div>
-  </div>
+                <div>
+                  <input
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value)}
+                    className={inputClass}
+                    placeholder="Ej: 28004"
+                    inputMode="numeric"
+                    maxLength={5}
+                  />
+                </div>
+              </div>
 
-  <p className="text-xs text-navy/60">
-    Puedes colocar el piso si es un apartamento, pero no el número de puerta.
-  </p>
-</div>
-
+              <p className="text-xs text-navy/60">
+                Puedes colocar el piso si es un apartamento, pero no el número de puerta.
+              </p>
+            </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -385,29 +397,26 @@ if (containsPII(content)) {
           </div>
 
           {/* Paso 4 */}
-<div className="rounded-2xl bg-white border border-black/10 p-6 space-y-4">
-  <h2 className="text-lg font-extrabold text-navy">Experiencia</h2>
+          <div className="rounded-2xl bg-white border border-black/10 p-6 space-y-4">
+            <h2 className="text-lg font-extrabold text-navy">Experiencia</h2>
 
-  <div className="space-y-2">
-    <label className="text-sm font-semibold text-navy">Tu reseña</label>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-navy">Tu reseña</label>
 
-    <textarea
-      value={content}
-      onChange={(e) => setContent(e.target.value)}
-      className={textareaClass}
-      placeholder="Describe tu experiencia (hechos, comunicación, estado del piso, etc.). Hazlo con respeto."
-      maxLength={1200}
-    />
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className={textareaClass}
+                placeholder="Describe tu experiencia (hechos, comunicación, estado del piso, etc.). Hazlo con respeto."
+                maxLength={1200}
+              />
 
-    <div className="flex items-center justify-between">
-      <p className="text-xs text-navy/60">
-      </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-navy/60"></p>
 
-      <p className="text-xs text-navy/60">
-        {content.length}/1200
-      </p>
-    </div>
-  </div>
+                <p className="text-xs text-navy/60">{content.length}/1200</p>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
