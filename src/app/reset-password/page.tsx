@@ -128,7 +128,7 @@ export default function ResetPasswordPage() {
 
         {!canReset && (
           <p className="mt-4 text-xs text-navy/60">
-            Tip: solicita el reset y abre el email en el mismo dispositivo y navegador (evita “vista previa” del correo).
+            Tip: solicita el reset y abre el email en el mismo dispositivo y navegador.
           </p>
         )}
       </div>
