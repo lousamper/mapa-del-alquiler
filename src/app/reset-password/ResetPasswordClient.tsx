@@ -1,0 +1,168 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import { supabase } from "@/lib/supabaseClient";
+
+export default function ResetPasswordClient() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const ranRef = useRef(false); // ✅ evita doble verify en dev/StrictMode
+
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (ranRef.current) {
+      console.log("[reset-password] useEffect skipped (already ran)");
+      return;
+    }
+    ranRef.current = true;
+
+    const token_hash = searchParams.get("token_hash");
+    const type = searchParams.get("type");
+
+    console.log("[reset-password] href:", window.location.href);
+    console.log("[reset-password] params:", { token_hash, type });
+
+    async function run() {
+      try {
+        setError(null);
+        setInfo(null);
+
+        if (!token_hash || type !== "recovery") {
+          console.log("[reset-password] invalid link params");
+          setError(
+            "Este enlace no es válido (falta token_hash o type=recovery). Vuelve a solicitar la recuperación de contraseña."
+          );
+          setVerifying(false);
+          return;
+        }
+
+        console.log("[reset-password] verifyOtp start…");
+
+        const { data, error: verifyError } = await supabase.auth.verifyOtp({
+          type: "recovery",
+          token_hash,
+        });
+
+        console.log("[reset-password] verifyOtp data:", data);
+        console.log("[reset-password] verifyOtp error:", verifyError);
+
+        if (verifyError) {
+          setError(verifyError.message);
+          setVerifying(false);
+          return;
+        }
+
+        // A veces verifyOtp devuelve session, pero igual verificamos si quedó persistida
+        const sessionRes = await supabase.auth.getSession();
+        console.log("[reset-password] getSession after verify:", sessionRes);
+
+        // Si por algún motivo no hay sesión, intentamos setSession cuando venga en data.session
+        if (!sessionRes.data.session && data?.session?.access_token && data?.session?.refresh_token) {
+          console.log("[reset-password] no session found, setting session…");
+
+          const { error: setSessionError } = await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+
+          console.log("[reset-password] setSession error:", setSessionError);
+
+          if (setSessionError) {
+            setError(setSessionError.message);
+            setVerifying(false);
+            return;
+          }
+
+          const sessionRes2 = await supabase.auth.getSession();
+          console.log("[reset-password] getSession after setSession:", sessionRes2);
+        }
+
+        setInfo("Enlace verificado. Ahora puedes crear tu nueva contraseña.");
+        setVerifying(false);
+      } catch (e: any) {
+        console.log("[reset-password] unexpected error:", e);
+        setError("Ocurrió un error verificando el enlace. Intenta de nuevo.");
+        setVerifying(false);
+      }
+    }
+
+    run();
+    // ⚠️ NO pongas searchParams como dependencia si querés evitar re-correr.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setInfo(null);
+
+    try {
+      console.log("[reset-password] updating password…");
+
+      const sessionBefore = await supabase.auth.getSession();
+      console.log("[reset-password] getSession before updateUser:", sessionBefore);
+
+      const { data, error: updateError } = await supabase.auth.updateUser({ password });
+
+      console.log("[reset-password] updateUser data:", data);
+      console.log("[reset-password] updateUser error:", updateError);
+
+      if (updateError) {
+        setError(updateError.message);
+      } else {
+        setInfo("Contraseña actualizada. Ya puedes iniciar sesión.");
+        setTimeout(() => router.push("/auth"), 800);
+      }
+    } catch (e: any) {
+      console.log("[reset-password] unexpected update error:", e);
+      setError("Ocurrió un error. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen">
+      <Navbar />
+      <div className="mx-auto max-w-md px-6 py-12">
+        <h1 className="text-2xl font-extrabold text-navy">Nueva contraseña</h1>
+
+        {verifying ? (
+          <p className="mt-4 text-sm text-navy/70">Verificando enlace de recuperación…</p>
+        ) : (
+          <form onSubmit={handleReset} className="mt-6 space-y-4">
+            <input
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Nueva contraseña (mínimo 6)"
+              className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+            />
+
+            {info && <p className="text-sm text-green-700">{info}</p>}
+            {error && <p className="text-sm text-red-700">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading || !!error}
+              className="w-full rounded-full bg-primary px-6 py-3 font-semibold text-background disabled:opacity-60"
+            >
+              {loading ? "Guardando…" : "Guardar contraseña"}
+            </button>
+          </form>
+        )}
+      </div>
+    </main>
+  );
+}
