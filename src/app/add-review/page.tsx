@@ -275,7 +275,7 @@ export default function AddReviewPage() {
               </div>
 
               <p className="text-xs text-navy/60">
-                Puedes colocar el piso si es un apartamento, pero no el número de puerta.
+                Puedes indicar el número de piso (1º, 2º, 3º…), pero no el número de puerta o apartamento.
               </p>
             </div>
 

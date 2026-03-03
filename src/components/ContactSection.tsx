@@ -55,7 +55,7 @@ export default function ContactSection() {
             ¿Tienes dudas o quieres dejarnos un mensaje?
           </h2>
           <p className="mt-3 text-navy/70">
-            Puedes hacerlo aquí. Te respondemos lo antes posible.
+            Puedes hacerlo aquí, te respondemos lo antes posible.
           </p>
         </div>
 
@@ -116,6 +116,15 @@ export default function ContactSection() {
               {loading ? "Enviando..." : "Enviar"}
             </button>
           </form>
+          <p className="mt-6 text-left text-sm text-navy/70">
+  O si lo prefieres, puedes escribirnos directamente a{" "}
+  <a
+    href="mailto:hola@elmapadelalquiler.es"
+    className="font-semibold text-navy underline hover:opacity-80"
+  >
+    hola@elmapadelalquiler.es
+  </a>
+</p>
         </div>
       </div>
     </section>
