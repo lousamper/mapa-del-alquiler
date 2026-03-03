@@ -54,31 +54,71 @@ export default function Footer() {
 
           {/* Safety / Disclaimer */}
           <div>
-            {/* TikTok button */}
-            <div className="mb-4 flex items-center gap-3">
-              <a
-                href="https://www.tiktok.com/@elmapadelalquiler"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="TikTok El Mapa del Alquiler"
-                className="
-                  inline-flex h-9 w-9 items-center justify-center
-                  rounded-full border border-black/10
-                  text-navy hover:bg-black/5 transition
-                "
-              >
-                {/* TikTok SVG */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="h-4 w-4"
-                >
-                  <path d="M16.5 3a5.5 5.5 0 0 0 5.5 5.5v3a8.4 8.4 0 0 1-5.5-2v7.3a6.2 6.2 0 1 1-6.2-6.2c.3 0 .6 0 .9.1v3.1a3.1 3.1 0 1 0 2.2 3V3h3.1z" />
-                </svg>
-              </a>
+            {/* TikTok + Instagram + Threads buttons */}
+<div className="mb-4 flex items-center gap-3">
+  {/* TikTok */}
+  <a
+    href="https://www.tiktok.com/@elmapadelalquiler"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="TikTok El Mapa del Alquiler"
+    className="
+      inline-flex h-9 w-9 items-center justify-center
+      rounded-full border border-black/10
+      text-navy hover:bg-black/5 transition
+    "
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="h-4 w-4"
+    >
+      <path d="M16.5 3a5.5 5.5 0 0 0 5.5 5.5v3a8.4 8.4 0 0 1-5.5-2v7.3a6.2 6.2 0 1 1-6.2-6.2c.3 0 .6 0 .9.1v3.1a3.1 3.1 0 1 0 2.2 3V3h3.1z" />
+    </svg>
+  </a>
 
-            </div>
+  {/* Instagram */}
+  <a
+    href="https://www.instagram.com/mapadelalquiler/"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Instagram El Mapa del Alquiler"
+    className="
+      inline-flex h-9 w-9 items-center justify-center
+      rounded-full border border-black/10
+      text-navy hover:bg-black/5 transition
+    "
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="h-4 w-4"
+    >
+      <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm10 2H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3zm-5 4.2a3.8 3.8 0 1 1 0 7.6 3.8 3.8 0 0 1 0-7.6zm0 2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zM17.8 6.2a.9.9 0 1 1-1.8 0 .9.9 0 0 1 1.8 0z" />
+    </svg>
+  </a>
+
+  {/* Threads */}
+<a
+  href="https://www.threads.com/@mapadelalquiler"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="Threads El Mapa del Alquiler"
+  className="
+    inline-flex h-9 w-9 items-center justify-center
+    rounded-full border border-black/10
+    text-navy hover:bg-black/5 transition
+  "
+>
+  <img
+    src="/threads.png"
+    alt="Threads"
+    className="h-7 w-7 object-contain"
+  />
+</a>
+</div>
 
             <p className="text-sm font-extrabold text-navy">Información importante</p>
             <p className="mt-3 text-sm text-navy/70">
