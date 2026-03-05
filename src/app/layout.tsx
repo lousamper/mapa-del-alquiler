@@ -20,9 +20,9 @@ const geistMono = Geist_Mono({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-const title = "El Mapa del Alquiler";
+const title = "El Mapa del Alquiler | Reseñas de pisos y habitaciones en España";
 const description =
-  "Reseñas anónimas de pisos y habitaciones en España para alquilar con más información y menos riesgo.";
+  "Opiniones anónimas de pisos y habitaciones en España para alquilar con más información y menos riesgo. ¿Viviste en un piso que debería tener reseña? Compártela aquí.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
