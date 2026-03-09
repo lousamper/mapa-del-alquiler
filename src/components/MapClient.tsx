@@ -80,6 +80,20 @@ function formatPropertyType(v: Review["property_type"]) {
   return v === "habitacion" ? "Habitación" : "Piso";
 }
 
+function formatNoiseLabel(v: number | null) {
+  if (v === null) return "";
+  if (v >= 4) return "Ruidoso";
+  if (v <= 2) return "Silencioso";
+  return "";
+}
+
+function formatMaintenanceLabel(v: number | null) {
+  if (v === null) return "";
+  if (v >= 4) return "Bueno";
+  if (v <= 2) return "Malo";
+  return "";
+}
+
 function containsPII(text: string) {
   const t = (text ?? "").toLowerCase();
 
@@ -518,10 +532,11 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
                           r.deposit_returned !== null) && (
                           <div className="text-[13px] sm:text-sm space-y-1">
                             {r.noise_level !== null && (
-                              <div>
-                                <span className="font-semibold">Ruido:</span> {r.noise_level}/5
-                              </div>
-                            )}
+  <div>
+    <span className="font-semibold">Ruido:</span> {r.noise_level}/5
+    {formatNoiseLabel(r.noise_level) && ` · ${formatNoiseLabel(r.noise_level)}`}
+  </div>
+)}
                             {r.maintenance_rating !== null && (
                               <div>
                                 <span className="font-semibold">Mantenimiento:</span> {r.maintenance_rating}/5
