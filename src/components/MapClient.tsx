@@ -82,14 +82,14 @@ function formatPropertyType(v: Review["property_type"]) {
 
 function formatNoiseLabel(v: number | null) {
   if (v === null) return "";
-  if (v >= 4) return "Ruidoso";
+  if (v >= 3) return "Ruidoso";
   if (v <= 2) return "Silencioso";
   return "";
 }
 
 function formatMaintenanceLabel(v: number | null) {
   if (v === null) return "";
-  if (v >= 4) return "Bueno";
+  if (v >= 3) return "Bueno";
   if (v <= 2) return "Malo";
   return "";
 }
@@ -538,10 +538,12 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
   </div>
 )}
                             {r.maintenance_rating !== null && (
-                              <div>
-                                <span className="font-semibold">Mantenimiento:</span> {r.maintenance_rating}/5
-                              </div>
-                            )}
+  <div>
+    <span className="font-semibold">Mantenimiento:</span> {r.maintenance_rating}/5
+    {formatMaintenanceLabel(r.maintenance_rating) &&
+      ` · ${formatMaintenanceLabel(r.maintenance_rating)}`}
+  </div>
+)}
                             {r.deposit_returned !== null && (
                               <div>
                                 <span className="font-semibold">Fianza devuelta:</span>{" "}
