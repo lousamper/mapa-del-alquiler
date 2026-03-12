@@ -378,7 +378,7 @@ export default function AddReviewPage() {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-navy/60">Para proteger el anonimato: selecciona un rango de mínimo 1 año (por ejemplo 2022–2023).</p>
+                <p className="text-xs text-navy/60">Para proteger tu anonimato: selecciona un rango al menos un 1 año (por ejemplo 2022–2023).</p>
               </div>
 
               <div className="space-y-2">
