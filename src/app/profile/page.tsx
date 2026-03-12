@@ -227,7 +227,7 @@ export default function TenantProfilePage() {
       return;
     }
     if (toYear - fromYear < 1) {
-      setErrorMsg("El rango debe ser mínimo de 1 año por privacidad (por ejemplo 2022–2023).");
+      setErrorMsg("El rango debe ser mínimo de 1 año para proteger tu anonimato (por ejemplo 2022–2023).");
       setSavingEdit(false);
       return;
     }
