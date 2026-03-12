@@ -127,7 +127,7 @@ export default function AddReviewPage() {
     if (!province.trim()) return "Completa la provincia.";
     const cp = postalCode.trim();
     if (cp && !/^\d{5}$/.test(cp)) {
-      return "El código postal debe tener 5 números (ej: 28004).";
+      return "El código postal debe tener 5 números (ej: 46003).";
     }
 
     const price = priceMonthly.trim() ? Number(priceMonthly) : null;
@@ -267,7 +267,7 @@ export default function AddReviewPage() {
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.target.value)}
                     className={inputClass}
-                    placeholder="Ej: 28004"
+                    placeholder="Ej: 46003"
                     inputMode="numeric"
                     maxLength={5}
                   />
