@@ -139,7 +139,7 @@ export default function AddReviewPage() {
 
     // Anonimato: rango mínimo 1 años
     if (toYear - fromYear < 1) {
-      return "Por proteger el anonimato: selecciona un rango de mínimo 1 año.";
+      return "Para proteger tu anonimato, indica un periodo de al menos 1 año.";
     }
 
     if (content.trim().length < 40) {
