@@ -9,6 +9,8 @@ const MapClient = dynamic(() => import("@/components/MapClient"), {
   ssr: false,
 });
 
+      const SHOW_ADS = false;
+
 export default function MapPage() {
   return (
     <main className="min-h-screen bg-background">
@@ -18,16 +20,18 @@ export default function MapPage() {
       <MapClient />
 
       {/* Ad manual debajo del mapa */}
-<div className="mx-auto max-w-6xl px-6 pb-8">
-  <div className="mt-6 rounded-2xl border border-black/10 bg-white p-4">
-    <div className="mb-2 text-xs text-white">Publicidad</div>
+      {SHOW_ADS && (
+  <div className="mx-auto max-w-6xl px-6 pb-8">
+    <div className="mt-6 rounded-2xl border border-black/10 bg-white p-4">
+      <div className="mb-2 text-xs text-white">Publicidad</div>
 
-    <AdSlot
-      slot="7416575414" // 👈 ESTE es el slot real
-      className="min-h-[90px]"
-    />
+      <AdSlot
+        slot="7416575414"
+        className="min-h-[90px]"
+      />
+    </div>
   </div>
-</div>
+)}
     </main>
   );
 }

@@ -1,4 +1,8 @@
 import { meta as origenMeta, content as origenContent } from "@/content/blog/origen-mapa-alquiler";
+import {
+  meta as encontrarMeta,
+  content as encontrarContent,
+} from "@/content/blog/como-encontrar-piso-en-espana-sin-sustos";
 
 export type BlogPostMeta = {
   title: string;
@@ -17,6 +21,11 @@ const POSTS = [
     slug: "origen-mapa-alquiler",
     meta: origenMeta as BlogPostMeta,
     content: origenContent,
+  },
+  {
+    slug: "como-encontrar-piso-en-espana-sin-sustos",
+    meta: encontrarMeta as BlogPostMeta,
+    content: encontrarContent,
   },
 ];
 
