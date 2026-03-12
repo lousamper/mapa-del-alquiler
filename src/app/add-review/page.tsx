@@ -139,7 +139,7 @@ export default function AddReviewPage() {
 
     // Anonimato: rango mínimo 1 años
     if (toYear - fromYear < 1) {
-      return "Para proteger tu anonimato, indica un periodo de al menos 1 año.";
+      return "Para proteger tu anonimato, indica un periodo de al menos 1 año (por ejemplo 2022–2023).";
     }
 
     if (content.trim().length < 40) {
@@ -378,7 +378,7 @@ export default function AddReviewPage() {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-navy/60">Para proteger el anonimato: selecciona un rango de mínimo 1 año.</p>
+                <p className="text-xs text-navy/60">Para proteger el anonimato: selecciona un rango de mínimo 1 año (por ejemplo 2022–2023).</p>
               </div>
 
               <div className="space-y-2">
