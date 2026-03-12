@@ -25,7 +25,7 @@ export default function BlogIndexPage() {
             <Link
               key={p.slug}
               href={`/blog/${p.slug}`}
-              className="block rounded-2xl bg-white border border-black/10 p-6 hover:bg-black/[0.02] transition"
+              className="block rounded-2xl bg-white border border-black/10 p-6 hover:bg-[#ff8ed1]/50 transition"
             >
               <div className="text-xs text-navy/60">{new Date(p.meta.date).toLocaleDateString("es-ES")}</div>
               <div className="mt-2 text-lg font-extrabold text-navy">{p.meta.title}</div>
