@@ -137,9 +137,9 @@ export default function AddReviewPage() {
 
     if (toYear < fromYear) return "El año final no puede ser menor al año inicial.";
 
-    // Anonimato: rango mínimo 3 años
-    if (toYear - fromYear < 3) {
-      return "Para proteger el anonimato, el rango de años debe ser de mínimo 3 años.";
+    // Anonimato: rango mínimo 1 años
+    if (toYear - fromYear < 1) {
+      return "Por proteger el anonimato: selecciona un rango de mínimo 1 año.";
     }
 
     if (content.trim().length < 40) {
@@ -378,7 +378,7 @@ export default function AddReviewPage() {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-navy/60">Por anonimato: selecciona un rango de mínimo 3 años.</p>
+                <p className="text-xs text-navy/60">Para proteger el anonimato: selecciona un rango de mínimo 1 año.</p>
               </div>
 
               <div className="space-y-2">
