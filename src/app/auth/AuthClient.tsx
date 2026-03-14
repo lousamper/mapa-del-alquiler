@@ -145,6 +145,47 @@ export default function AuthClient() {
     }
   }
 
+  async function handleMagicLink() {
+  setError(null);
+  setInfo(null);
+
+  if (!email.trim()) {
+    setError("Introduce tu email para recibir el magic link.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${siteUrl}/account`,
+      },
+    });
+
+    if (error) throw error;
+
+    setInfo("Te enviamos un magic link para iniciar sesión.");
+  } catch (err: any) {
+    console.error(err);
+
+    const rawMsg = err?.message ?? "";
+    const msg = rawMsg.toLowerCase();
+
+    if (msg.includes("email")) {
+      setError("No pudimos enviar el magic link. Revisa el correo e inténtalo de nuevo.");
+    } else {
+      setError("Ocurrió un error al enviar el magic link.");
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+
   async function handleForgotPassword() {
     setError(null);
     setInfo(null);
@@ -263,13 +304,34 @@ export default function AuthClient() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-full bg-primary px-6 py-3 font-semibold text-background hover:opacity-90 disabled:opacity-60"
-          >
-            {loading ? "Cargando..." : mode === "login" ? "Entrar" : "Crear cuenta"}
-          </button>
+          {mode === "login" ? (
+  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <button
+      type="submit"
+      disabled={loading}
+      className="w-full rounded-full bg-primary px-6 py-3 font-semibold text-background hover:opacity-90 disabled:opacity-60"
+    >
+      {loading ? "Cargando..." : "Entrar"}
+    </button>
+
+    <button
+      type="button"
+      disabled={loading}
+      onClick={handleMagicLink}
+      className="w-full rounded-full border border-black/10 bg-white px-6 py-3 font-semibold text-navy hover:bg-black/5 disabled:opacity-60"
+    >
+      {loading ? "Cargando..." : "Magic link"}
+    </button>
+  </div>
+) : (
+  <button
+    type="submit"
+    disabled={loading}
+    className="w-full rounded-full bg-primary px-6 py-3 font-semibold text-background hover:opacity-90 disabled:opacity-60"
+  >
+    {loading ? "Cargando..." : "Crear cuenta"}
+  </button>
+)}
 
           <p className="text-center text-sm text-navy/70">
             {mode === "signup" ? (
