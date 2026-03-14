@@ -107,6 +107,22 @@ function formatMaintenanceLabel(v: number | null) {
   return "";
 }
 
+function getRepeatedIssues(reviews: Review[]) {
+  const issues: string[] = [];
+
+  const noisyCount = reviews.filter((r) => r.noise_level !== null && r.noise_level >= 4).length;
+  const badMaintenanceCount = reviews.filter(
+    (r) => r.maintenance_rating !== null && r.maintenance_rating <= 2
+  ).length;
+  const depositProblemsCount = reviews.filter((r) => r.deposit_returned === false).length;
+
+  if (noisyCount >= 2) issues.push("Ruido");
+  if (badMaintenanceCount >= 2) issues.push("Mantenimiento");
+  if (depositProblemsCount >= 2) issues.push("Fianza");
+
+  return issues;
+}
+
 function containsPII(text: string) {
   const t = (text ?? "").toLowerCase();
 
@@ -514,6 +530,7 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
 
             {groupedReviews.map((group) => {
   const avg = averageRating(group.reviews);
+  const repeatedIssues = getRepeatedIssues(group.reviews);
 
   return (
     <Marker key={group.key} position={[group.lat, group.lng]}>
@@ -522,15 +539,22 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
           <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-4">
             {/* Header del grupo */}
             <div className="space-y-1">
-              <div className="text-[13px] sm:text-sm font-semibold">
-                {pinColor(Math.round(avg))} {avg.toFixed(1)}/5 · {group.reviews.length}{" "}
-                {group.reviews.length === 1 ? "reseña" : "reseñas"} en esta dirección
-              </div>
+  <div className="text-[13px] sm:text-sm font-semibold">
+    {pinColor(Math.round(avg))} {avg.toFixed(1)}/5 · {group.reviews.length}{" "}
+    {group.reviews.length === 1 ? "reseña" : "reseñas"} en esta dirección
+  </div>
 
-              <div className="text-[13px] sm:text-sm text-navy/80">
-                {group.reviews[0].address}, {group.reviews[0].city}, {group.reviews[0].province}
-              </div>
-            </div>
+  <div className="text-[13px] sm:text-sm text-navy/80">
+    {group.reviews[0].address}, {group.reviews[0].city}, {group.reviews[0].province}
+  </div>
+
+  {repeatedIssues.length > 0 && (
+    <div className="text-[12px] sm:text-xs text-navy/70">
+      <span className="font-semibold">Problemas más repetidos:</span>{" "}
+      {repeatedIssues.join(", ")}
+    </div>
+  )}
+</div>
 
             {/* Lista de reseñas del grupo */}
             {group.reviews.map((r) => {

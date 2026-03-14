@@ -35,45 +35,71 @@ export default function AuthClient() {
     return "Crea tu cuenta";
   }, [mode]);
 
+  function validateSignupPassword(password: string) {
+    if (password.length < 8) {
+      return "La contraseña debe tener al menos 8 caracteres.";
+    }
+
+    if (!/\d/.test(password)) {
+      return "La contraseña debe incluir al menos un número.";
+    }
+
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setInfo(null);
+
+    if (mode === "signup") {
+      const passwordError = validateSignupPassword(password);
+      if (passwordError) {
+        setError(passwordError);
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       if (mode === "signup") {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-const { data, error: signUpError } = await supabase.auth.signUp({
-  email,
-  password,
-  options: {
-    data: { role }, // <-- esto lo lee el trigger
-    emailRedirectTo: `${siteUrl}/account`,
-  },
-});
-if (signUpError) throw signUpError;
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { role },
+            emailRedirectTo: `${siteUrl}/account`,
+          },
+        });
 
-  const userId = data.user?.id;
-  if (!userId) {
-    throw new Error(
-      "No se pudo completar el registro. Revisa tu email por si requiere verificación."
-    );
-  }
+        if (signUpError) throw signUpError;
 
+        const userId = data.user?.id;
 
-  setMode("login");
-  setEmail("");
-  setPassword("");
-  setInfo(
-    "Te enviamos un email para confirmar tu cuenta. Revisa tu bandeja y luego inicia sesión."
-  );
-  return;
-}
+        // Caso ambiguo / ya existente / signup no completado de forma clara
+        if (!userId) {
+          setError("Oops, ya existe una cuenta con ese correo. Intenta iniciar sesión o recuperar tu contraseña.");
+          setLoading(false);
+          return;
+        }
+
+        setMode("login");
+        setEmail("");
+        setPassword("");
+        setInfo(
+          "Te enviamos un email para confirmar tu cuenta. Revisa tu bandeja y luego inicia sesión."
+        );
+        return;
+      }
 
       // LOGIN
-      const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (loginError) throw loginError;
 
       const userId = data.user?.id;
@@ -87,54 +113,56 @@ if (signUpError) throw signUpError;
 
       if (profileReadError) throw profileReadError;
 
-      // ✅ redirección por rol (admin -> /admin)
       if (profile.role === "admin") router.push("/admin");
       else router.push(profile.role === "tenant" ? "/profile" : "/owner");
     } catch (err: any) {
-  console.error(err);
+      console.error(err);
 
-  const rawMsg = err?.message ?? "";
-  const msg = rawMsg.toLowerCase();
+      const rawMsg = err?.message ?? "";
+      const msg = rawMsg.toLowerCase();
 
-  if (msg.includes("row-level security")) {
-    setError(
-      "Estamos teniendo un problema creando tu perfil. Intenta de nuevo en unos segundos."
-    );
-  } else if (msg.includes("invalid login credentials")) {
-    setError(
-      "No encontramos una cuenta con ese email o la contraseña no es correcta. Si no tienes cuenta, regístrate."
-    );
-  } else if (msg.includes("email not confirmed")) {
-    setError(
-      "Tu cuenta aún no está confirmada. Revisa tu email para activarla."
-    );
-  } else {
-    // fallback genérico (mejor que mostrar errores técnicos)
-    setError("Ocurrió un error. Intenta de nuevo.");
-  }
-} finally {
-  setLoading(false);
-}
+      if (msg.includes("row-level security")) {
+        setError(
+          "Estamos teniendo un problema creando tu perfil. Intenta de nuevo en unos segundos."
+        );
+      } else if (msg.includes("invalid login credentials")) {
+        setError(
+          "No encontramos una cuenta con ese email o la contraseña no es correcta. Si no tienes cuenta, regístrate."
+        );
+      } else if (msg.includes("email not confirmed")) {
+        setError(
+          "Tu cuenta aún no está confirmada. Revisa tu email para activarla."
+        );
+      } else if (msg.includes("user already registered")) {
+        setError(
+          "Oops, ya existe una cuenta con ese correo. Intenta iniciar sesión o recuperar tu contraseña."
+        );
+      } else {
+        setError("Ocurrió un error. Intenta de nuevo.");
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleForgotPassword() {
-  setError(null);
-  setInfo(null);
+    setError(null);
+    setInfo(null);
 
-  if (!email) {
-    setError("Introduce tu email para recuperar la contraseña.");
-    return;
+    if (!email) {
+      setError("Introduce tu email para recuperar la contraseña.");
+      return;
+    }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${siteUrl}/reset-password`,
+    });
+
+    if (error) setError(error.message);
+    else setInfo("Te enviamos un email para recuperar tu contraseña.");
   }
-
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl}/reset-password`,
-  });
-
-  if (error) setError(error.message);
-  else setInfo("Te enviamos un email para recuperar tu contraseña.");
-}
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -199,13 +227,18 @@ if (signUpError) throw signUpError;
             <input
               type="password"
               required
-              minLength={6}
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy outline-none focus-visible:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
-              placeholder="Mínimo 6 caracteres"
+              placeholder={mode === "signup" ? "Mínimo 8 caracteres y 1 número" : "Tu contraseña"}
               autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
+            {mode === "signup" && (
+              <p className="text-xs text-navy/60">
+                Debe tener al menos 8 caracteres e incluir 1 número.
+              </p>
+            )}
           </div>
 
           {mode === "login" && (
