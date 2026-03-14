@@ -43,6 +43,13 @@ type Review = {
   review_responses?: ReviewResponse[]; // viene como array con select anidado
 };
 
+type ReviewGroup = {
+  key: string;
+  lat: number;
+  lng: number;
+  reviews: Review[];
+};
+
 function SetView({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
@@ -63,6 +70,12 @@ function pinColor(rating: number) {
   if (rating >= 4) return "🟢";
   if (rating === 3) return "🟡";
   return "🔴";
+}
+
+function averageRating(reviews: Review[]) {
+  if (!reviews.length) return 0;
+  const total = reviews.reduce((sum, r) => sum + r.rating, 0);
+  return total / reviews.length;
 }
 
 function formatStayLength(v: Review["stay_length"]) {
@@ -153,6 +166,29 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
       return true;
     });
   }, [reviews, propertyType, rentalType, minRating]);
+
+  const groupedReviews = useMemo(() => {
+  const map = new Map<string, ReviewGroup>();
+
+  for (const r of filtered) {
+    const lat = Number(r.lat);
+    const lng = Number(r.lng);
+    const key = `${lat},${lng}`;
+
+    if (!map.has(key)) {
+      map.set(key, {
+        key,
+        lat,
+        lng,
+        reviews: [],
+      });
+    }
+
+    map.get(key)!.reviews.push(r);
+  }
+
+  return Array.from(map.values());
+}, [filtered]);
 
   async function loadReviews() {
     setLoading(true);
@@ -476,148 +512,165 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
             <SetView center={center} />
             <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-            {filtered.map((r) => {
+            {groupedReviews.map((group) => {
+  const avg = averageRating(group.reviews);
+
+  return (
+    <Marker key={group.key} position={[group.lat, group.lng]}>
+      <Popup>
+        <div className="w-full max-w-[260px] sm:w-[320px] sm:max-w-none">
+          <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-4">
+            {/* Header del grupo */}
+            <div className="space-y-1">
+              <div className="text-[13px] sm:text-sm font-semibold">
+                {pinColor(Math.round(avg))} {avg.toFixed(1)}/5 · {group.reviews.length}{" "}
+                {group.reviews.length === 1 ? "reseña" : "reseñas"} en esta dirección
+              </div>
+
+              <div className="text-[13px] sm:text-sm text-navy/80">
+                {group.reviews[0].address}, {group.reviews[0].city}, {group.reviews[0].province}
+              </div>
+            </div>
+
+            {/* Lista de reseñas del grupo */}
+            {group.reviews.map((r) => {
               const response = r.review_responses?.[0] ?? null;
-              const canEditResponse = role === "owner" && !!userId && response?.owner_id === userId;
+              const canEditResponse =
+                role === "owner" && !!userId && response?.owner_id === userId;
 
               return (
-                <Marker key={r.id} position={[Number(r.lat), Number(r.lng)]}>
-                  <Popup>
-                    {/* ✅ Contenedor con altura fija + scroll interno */}
-                    <div className="w-full max-w-[260px] sm:w-[320px] sm:max-w-none">
-                      <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-3">
-                        <div className="text-[10px] sm:text-xs text-navy/60">
-                          Publicada:{" "}
-                          {new Date(r.created_at).toLocaleDateString("es-ES", {
-                            year: "numeric",
-                            month: "short",
-                            day: "2-digit",
-                          })}
+                <div key={r.id} className="border-t border-black/10 pt-4 first:border-t-0 first:pt-0">
+                  <div className="text-[10px] sm:text-xs text-navy/60">
+                    Publicada:{" "}
+                    {new Date(r.created_at).toLocaleDateString("es-ES", {
+                      year: "numeric",
+                      month: "short",
+                      day: "2-digit",
+                    })}
+                  </div>
+
+                  <div className="mt-2 text-[13px] sm:text-sm font-semibold">
+                    {pinColor(r.rating)} {r.rating}/5 · {formatPropertyType(r.property_type)}
+                  </div>
+
+                  <div className="mt-1 text-[13px] sm:text-sm">
+                    <span className="font-semibold">Contrato:</span>{" "}
+                    {r.rental_type === "largo_plazo" ? "Largo plazo" : "Temporal"}
+                  </div>
+
+                  <div className="text-[13px] sm:text-sm">
+                    <span className="font-semibold">Años:</span> {r.lived_from_year}–{r.lived_to_year} ·{" "}
+                    <span className="font-semibold">Duración:</span> {formatStayLength(r.stay_length)}
+                  </div>
+
+                  {r.price_monthly_eur !== null && (
+                    <div className="text-[13px] sm:text-sm">
+                      <span className="font-semibold">Precio/mes:</span>{" "}
+                      {Number(r.price_monthly_eur).toFixed(0)} €
+                    </div>
+                  )}
+
+                  <div className="text-[13px] sm:text-sm">
+                    <span className="font-semibold">¿Lo recomendaría?</span>{" "}
+                    {formatBoolNullable(r.would_recommend)}
+                  </div>
+
+                  {(r.noise_level !== null ||
+                    r.maintenance_rating !== null ||
+                    r.deposit_returned !== null) && (
+                    <div className="text-[13px] sm:text-sm space-y-1 mt-1">
+                      {r.noise_level !== null && (
+                        <div>
+                          <span className="font-semibold">Ruido:</span> {r.noise_level}/5
+                          {formatNoiseLabel(r.noise_level) && ` · ${formatNoiseLabel(r.noise_level)}`}
                         </div>
-
-                        {/* ✅ Header: solo rating + tipo vivienda */}
-                        <div className="text-[13px] sm:text-sm font-semibold">
-                          {pinColor(r.rating)} {r.rating}/5 · {formatPropertyType(r.property_type)}
+                      )}
+                      {r.maintenance_rating !== null && (
+                        <div>
+                          <span className="font-semibold">Mantenimiento:</span> {r.maintenance_rating}/5
+                          {formatMaintenanceLabel(r.maintenance_rating) &&
+                            ` · ${formatMaintenanceLabel(r.maintenance_rating)}`}
                         </div>
-
-                        <div className="text-[13px] sm:text-sm">
-                          {r.address}, {r.city}, {r.province}
+                      )}
+                      {r.deposit_returned !== null && (
+                        <div>
+                          <span className="font-semibold">Fianza devuelta:</span>{" "}
+                          {formatBoolNullable(r.deposit_returned)}
                         </div>
+                      )}
+                    </div>
+                  )}
 
-                        {/* ✅ Contrato debajo de la dirección */}
-                        <div className="text-[13px] sm:text-sm">
-                          <span className="font-semibold">Contrato:</span>{" "}
-                          {r.rental_type === "largo_plazo" ? "Largo plazo" : "Temporal"}
-                        </div>
+                  <div className="mt-2 text-[13px] sm:text-sm opacity-90 whitespace-pre-wrap">
+                    {r.content}
+                  </div>
 
-                        <div className="text-[13px] sm:text-sm">
-                          <span className="font-semibold">Años:</span> {r.lived_from_year}–{r.lived_to_year} ·{" "}
-                          <span className="font-semibold">Duración:</span> {formatStayLength(r.stay_length)}
-                        </div>
-
-                        {r.price_monthly_eur !== null && (
-                          <div className="text-[13px] sm:text-sm">
-                            <span className="font-semibold">Precio/mes:</span>{" "}
-                            {Number(r.price_monthly_eur).toFixed(0)} €
-                          </div>
-                        )}
-
-                        <div className="text-[13px] sm:text-sm">
-                          <span className="font-semibold">¿Lo recomendaría?</span>{" "}
-                          {formatBoolNullable(r.would_recommend)}
-                        </div>
-
-                        {(r.noise_level !== null ||
-                          r.maintenance_rating !== null ||
-                          r.deposit_returned !== null) && (
-                          <div className="text-[13px] sm:text-sm space-y-1">
-                            {r.noise_level !== null && (
-  <div>
-    <span className="font-semibold">Ruido:</span> {r.noise_level}/5
-    {formatNoiseLabel(r.noise_level) && ` · ${formatNoiseLabel(r.noise_level)}`}
-  </div>
-)}
-                            {r.maintenance_rating !== null && (
-  <div>
-    <span className="font-semibold">Mantenimiento:</span> {r.maintenance_rating}/5
-    {formatMaintenanceLabel(r.maintenance_rating) &&
-      ` · ${formatMaintenanceLabel(r.maintenance_rating)}`}
-  </div>
-)}
-                            {r.deposit_returned !== null && (
-                              <div>
-                                <span className="font-semibold">Fianza devuelta:</span>{" "}
-                                {formatBoolNullable(r.deposit_returned)}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="text-[13px] sm:text-sm opacity-90 whitespace-pre-wrap">
-                          {r.content}
-                        </div>
-
-                        {/* ✅ Respuesta del propietario (si existe) */}
-                        {response && (
-                          <div className="mt-2 rounded-xl border border-black/10 bg-[#f5f5f5] p-3">
-                            <div className="text-[13px] sm:text-sm font-semibold">Respuesta del propietario</div>
-                            <div className="mt-1 text-[13px] sm:text-sm whitespace-pre-wrap">
-                              {response.content}
-                            </div>
-
-                            {canEditResponse && (
-                              <div className="mt-2 flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => openResponse(r)}
-                                  className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-semibold text-navy hover:bg-black/5"
-                                >
-                                  Editar
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setRespReview(r);
-                                    setRespText(response.content);
-                                    setRespInfo(null);
-                                    setRespError(null);
-                                    setRespOpen(true);
-                                  }}
-                                  className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-semibold text-navy hover:bg-black/5"
-                                >
-                                  Gestionar
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                  {/* Respuesta del propietario */}
+                  {response && (
+                    <div className="mt-3 rounded-xl border border-black/10 bg-[#f5f5f5] p-3">
+                      <div className="text-[13px] sm:text-sm font-semibold">
+                        Respuesta del propietario
+                      </div>
+                      <div className="mt-1 text-[13px] sm:text-sm whitespace-pre-wrap">
+                        {response.content}
                       </div>
 
-                      {/* ✅ Botones fuera del scroll */}
-                      <div className="mt-3 flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openReport(r)}
-                          className="flex-1 inline-flex items-center justify-center rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-navy hover:bg-black/5"
-                        >
-                          Reportar
-                        </button>
-
-                        {role === "owner" && (
+                      {canEditResponse && (
+                        <div className="mt-2 flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => openResponse(r)}
-                            className="flex-1 inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-background hover:opacity-90"
+                            className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-semibold text-navy hover:bg-black/5"
                           >
-                            Responder
+                            Editar
                           </button>
-                        )}
-                      </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRespReview(r);
+                              setRespText(response.content);
+                              setRespInfo(null);
+                              setRespError(null);
+                              setRespOpen(true);
+                            }}
+                            className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-semibold text-navy hover:bg-black/5"
+                          >
+                            Gestionar
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </Popup>
-                </Marker>
+                  )}
+
+                  {/* Botones */}
+                  <div className="mt-3 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => openReport(r)}
+                      className="flex-1 inline-flex items-center justify-center rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-navy hover:bg-black/5"
+                    >
+                      Reportar
+                    </button>
+
+                    {role === "owner" && (
+                      <button
+                        type="button"
+                        onClick={() => openResponse(r)}
+                        className="flex-1 inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-background hover:opacity-90"
+                      >
+                        Responder
+                      </button>
+                    )}
+                  </div>
+                </div>
               );
             })}
+          </div>
+        </div>
+      </Popup>
+    </Marker>
+  );
+})}
           </MapContainer>
         </div>
       </div>
