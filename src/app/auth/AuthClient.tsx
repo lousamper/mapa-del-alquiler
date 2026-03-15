@@ -176,11 +176,20 @@ export default function AuthClient() {
     const rawMsg = err?.message ?? "";
     const msg = rawMsg.toLowerCase();
 
-    if (msg.includes("email")) {
-      setError("No pudimos enviar el magic link. Revisa el correo e inténtalo de nuevo.");
-    } else {
-      setError("Ocurrió un error al enviar el magic link.");
-    }
+    if (
+    msg.includes("user not found") ||
+    msg.includes("invalid login credentials")
+  ) {
+    setError(
+      "No existe una cuenta con ese correo. Si aún no tienes cuenta, regístrate."
+    );
+  } else if (msg.includes("email")) {
+    setError(
+      "No pudimos enviar el magic link. Revisa que el correo sea correcto e inténtalo de nuevo."
+    );
+  } else {
+    setError("Ocurrió un error al enviar el magic link.");
+  }
   } finally {
     setLoading(false);
   }
