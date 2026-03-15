@@ -221,8 +221,9 @@ export default function AuthClient() {
       <section className="mx-auto w-full max-w-xl px-6 py-12">
         <h1 className="text-3xl font-extrabold text-navy">{title}</h1>
         <p className="mt-2 text-navy/70">
-          Tu email nunca se mostrará públicamente. En el mapa aparecerás como{" "}
-          <span className="font-semibold">anónimo/a</span>.
+          Tu dirección de correo nunca se mostrará públicamente ni se asociará a tu reseña.
+En el mapa aparecerás como anónimo/a para proteger tu privacidad.
+Solo se usará para acceder a tu cuenta.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
