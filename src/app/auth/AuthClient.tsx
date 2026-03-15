@@ -329,7 +329,7 @@ export default function AuthClient() {
       onClick={handleMagicLink}
       className="w-full rounded-full border border-black/10 bg-white px-6 py-3 font-semibold text-navy hover:bg-black/5 disabled:opacity-60"
     >
-      {loading ? "Cargando..." : "Magic link"}
+      {loading ? "Cargando..." : "Entrar con email"}
     </button>
   </div>
 ) : (
