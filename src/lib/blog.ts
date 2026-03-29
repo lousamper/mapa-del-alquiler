@@ -3,6 +3,10 @@ import {
   meta as encontrarMeta,
   content as encontrarContent,
 } from "@/content/blog/como-encontrar-piso-en-espana-sin-sustos";
+import {
+  meta as mercadoMeta,
+  content as mercadoContent,
+} from "@/content/blog/mercado-inmobiliario-en-espana";
 
 export type BlogPostMeta = {
   title: string;
@@ -27,6 +31,12 @@ const POSTS = [
     meta: encontrarMeta as BlogPostMeta,
     content: encontrarContent,
   },
+  {
+  slug: "mercado-inmobiliario-en-espana",
+  meta: mercadoMeta as BlogPostMeta,
+  content: mercadoContent,
+},
+
 ];
 
 export function getAllPosts(): BlogPost[] {

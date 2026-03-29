@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { supabase } from "@/lib/supabaseClient";
+import { useSearchParams } from "next/navigation";
 
 type ReviewResponse = {
   id: string;
@@ -135,6 +136,7 @@ function containsPII(text: string) {
 }
 
 export default function MapClient() {
+  const searchParams = useSearchParams();
   const [q, setQ] = useState("");
   const [center, setCenter] = useState<[number, number]>([40.4168, -3.7038]); // Madrid default
   const [loading, setLoading] = useState(false);
@@ -256,6 +258,25 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
   useEffect(() => {
     loadReviews();
   }, []);
+
+  useEffect(() => {
+  const query = searchParams.get("q");
+  if (!query) return;
+
+  setQ(query);
+
+  async function searchLocation() {
+    const res = await fetch(`/api/geocode?q=${encodeURIComponent(query + ", España")}`);
+    const data = await res.json();
+    const first = data?.results?.[0];
+
+    if (first?.lat && first?.lng) {
+      setCenter([first.lat, first.lng]);
+    }
+  }
+
+  searchLocation();
+}, [searchParams]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();

@@ -90,7 +90,7 @@ export default function AuthClient() {
         setEmail("");
         setPassword("");
         setInfo(
-          "Te enviamos un email para confirmar tu cuenta. Revisa tu bandeja y luego inicia sesión."
+          "Te enviamos un email para confirmar tu cuenta. Revisa tu bandeja (también el spam por si acaso) y luego inicia sesión."
         );
         return;
       }
@@ -169,7 +169,7 @@ export default function AuthClient() {
 
     if (error) throw error;
 
-    setInfo("Te enviamos un magic link para iniciar sesión.");
+    setInfo("Te enviamos un magic link para iniciar sesión. Revisa si te ha llegado a spam.");
   } catch (err: any) {
     console.error(err);
 
@@ -211,7 +211,7 @@ export default function AuthClient() {
     });
 
     if (error) setError(error.message);
-    else setInfo("Te enviamos un email para recuperar tu contraseña.");
+    else setInfo("Te enviamos un email para recuperar tu contraseña. Revisa si te ha llegado a spam.");
   }
 
   return (
