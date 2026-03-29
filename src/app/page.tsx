@@ -34,7 +34,7 @@ export default function Home() {
           >
             <input
               name="q"
-              placeholder="Busca direcciones o provincias"
+              placeholder="Dirección o provincia"
               className="w-full bg-transparent text-navy outline-none placeholder:text-navy/40"
             />
             <button
