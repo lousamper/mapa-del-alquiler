@@ -459,7 +459,7 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Busca una dirección o provincia"
-                className="w-full bg-transparent text-navy outline-none placeholder:text-navy/40"
+                className="w-full bg-transparent text-navy outline-none placeholder:text-transparent md:placeholder:text-navy/40"
               />
 
               <button
