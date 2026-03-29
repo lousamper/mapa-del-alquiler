@@ -221,7 +221,7 @@ export default function AuthClient() {
       <section className="mx-auto w-full max-w-xl px-6 py-12">
         <h1 className="text-3xl font-extrabold text-navy">{title}</h1>
         <p className="mt-2 text-navy/70">
-          Tu dirección de correo nunca se mostrará públicamente ni se asociará a tu reseña.
+          Tu dirección de correo nunca se mostrará públicamente.
 En el mapa aparecerás como anónimo/a para proteger tu privacidad.
         </p>
 
