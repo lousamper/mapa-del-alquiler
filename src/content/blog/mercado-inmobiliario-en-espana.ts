@@ -151,7 +151,7 @@ Porque en un mercado donde no todo vale lo que cuesta, **tener contexto lo cambi
 
 ---
 
-El mercado inmobiliario en España no responde a una única lógica. Está evolucionando hacia un modelo más complejo.
+El mercado inmobiliario en España no responde a una única lógica, está evolucionando hacia un modelo más complejo.
 
 En un entorno con distorsiones, la clave está en comprender:
 
