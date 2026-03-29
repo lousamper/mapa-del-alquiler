@@ -223,7 +223,6 @@ export default function AuthClient() {
         <p className="mt-2 text-navy/70">
           Tu dirección de correo nunca se mostrará públicamente ni se asociará a tu reseña.
 En el mapa aparecerás como anónimo/a para proteger tu privacidad.
-Solo se usará para acceder a tu cuenta.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">

@@ -22,21 +22,16 @@ export default function Home() {
 
         <div className="relative mx-auto flex min-h-[82vh] max-w-6xl flex-col items-center justify-center px-6 text-center">
           <h1 className="text-3xl font-extrabold tracking-tight text-navy md:text-5xl">
-            EXPLORA LAS OPINIONES DE
+            EXPLORA OPINIONES
             <br />
-            HABITACIONES Y PISOS DE TU CIUDAD
+            DE PISOS Y HABITACIONES EN TU CIUDAD
           </h1>
-
-          <p className="mt-3 text-sm font-semibold tracking-wide text-navy/70">
-            MÁS INFORMACION, MENOS RIESGOS.
-          </p>
 
           <form
             className="mt-5 flex w-full max-w-xl items-center gap-2 rounded-full bg-white px-4 py-3 shadow-sm"
             action="/map"
             method="GET"
           >
-            <span className="text-navy/60"></span>
             <input
               name="q"
               placeholder="Busca direcciones o provincias"
@@ -49,6 +44,20 @@ export default function Home() {
               Buscar
             </button>
           </form>
+
+          {/* NUEVO CTA debajo del buscador */}
+          <div className="mt-4 flex flex-col items-center">
+            <p className="text-sm font-semibold text-navy md:text-base">
+              ¿Viviste en un piso en España?
+            </p>
+
+            <Link
+  href="/add-review"
+  className="mt-0.70 text-sm font-semibold text-navy underline underline-offset-4 hover:opacity-70"
+>
+  Comparte tu experiencia
+</Link>
+          </div>
         </div>
       </section>
 
