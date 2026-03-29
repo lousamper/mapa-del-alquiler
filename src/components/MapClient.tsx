@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -537,9 +538,22 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
         </form>
 
         {/* Texto debajo */}
-        <div className="mt-3 text-sm text-navy/60">
-          {loading ? "Cargando reseñas..." : `Mostrando ${filtered.length} reseñas en el mapa`}
-        </div>
+<div className="mt-3">
+  <div className="text-sm text-navy/60">
+    {loading ? "Cargando reseñas..." : `Mostrando ${filtered.length} reseñas en el mapa`}
+  </div>
+
+  {!loading && (
+    <div className="mt-1">
+      <Link
+        href="/add-review"
+        className="text-sm font-semibold text-navy underline underline-offset-4 hover:opacity-70"
+      >
+        Falta la tuya, añádela
+      </Link>
+    </div>
+  )}
+</div>
       </div>
 
       {/* Mapa */}
