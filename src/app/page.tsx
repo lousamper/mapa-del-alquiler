@@ -22,9 +22,9 @@ export default function Home() {
 
         <div className="relative mx-auto flex min-h-[82vh] max-w-6xl flex-col items-center justify-center px-6 text-center">
           <h1 className="text-3xl font-extrabold tracking-tight text-navy md:text-5xl">
-            EXPLORA OPINIONES
+            EXPLORA OPINIONES DE
             <br />
-            DE PISOS Y HABITACIONES EN TU CIUDAD
+            PISOS Y HABITACIONES EN TU CIUDAD
           </h1>
 
           <form
