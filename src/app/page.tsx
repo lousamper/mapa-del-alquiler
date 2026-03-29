@@ -21,7 +21,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-white/55" />
 
         <div className="relative mx-auto flex min-h-[82vh] max-w-6xl flex-col items-center justify-center px-6 text-center">
-          <h1 className="text-3xl font-extrabold tracking-tight text-navy md:text-5xl">
+          <h1 className="text-3xl font-black tracking-tight text-navy md:text-5xl md:font-extrabold">
             EXPLORA OPINIONES
             <br />
             DE PISOS Y HABITACIONES EN TU CIUDAD
