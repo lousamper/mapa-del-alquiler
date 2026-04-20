@@ -52,6 +52,34 @@ type ReviewGroup = {
   reviews: Review[];
 };
 
+type NeighborhoodReview = {
+  id: string;
+  neighborhood: string;
+  city: string;
+  province: string;
+  country: string;
+  lat: number;
+  lng: number;
+  rating: number;
+  environment_rating: number;
+  noise_rating: number;
+  safety_rating: number;
+  cleanliness_rating: number;
+  price_rating: number;
+  content: string | null;
+  created_at: string;
+};
+
+type NeighborhoodReviewGroup = {
+  key: string;
+  neighborhood: string;
+  city: string;
+  province: string;
+  lat: number;
+  lng: number;
+  reviews: NeighborhoodReview[];
+};
+
 function SetView({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
@@ -67,6 +95,24 @@ const DefaultIcon = L.icon({
   iconAnchor: [12, 41],
 });
 L.Marker.prototype.options.icon = DefaultIcon;
+
+const NeighborhoodIcon = new L.DivIcon({
+  html: `
+    <div style="
+      width: 25px;
+      height: 41px;
+      background-image: url('https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: hue-rotate(90deg) saturate(2.4) brightness(1);
+    "></div>
+  `,
+  className: "",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
 
 function pinColor(rating: number) {
   if (rating >= 4) return "🟢";
@@ -107,6 +153,50 @@ function formatMaintenanceLabel(v: number | null) {
   if (v >= 3) return "Bueno";
   if (v <= 2) return "Malo";
   return "";
+}
+
+function averageNeighborhoodMetric(
+  reviews: NeighborhoodReview[],
+  key:
+    | "environment_rating"
+    | "noise_rating"
+    | "safety_rating"
+    | "cleanliness_rating"
+    | "price_rating"
+) {
+  if (!reviews.length) return 0;
+  const total = reviews.reduce((sum, r) => sum + Number(r[key] ?? 0), 0);
+  return total / reviews.length;
+}
+
+function formatEnvironmentLabel(v: number) {
+  if (v >= 4) return "Bueno";
+  if (v <= 2) return "Malo";
+  return "Normal";
+}
+
+function formatNeighborhoodNoiseLabel(v: number) {
+  if (v >= 4) return "Alto";
+  if (v <= 2) return "Bajo";
+  return "Medio";
+}
+
+function formatSafetyLabel(v: number) {
+  if (v >= 4) return "Alta";
+  if (v <= 2) return "Baja";
+  return "Media";
+}
+
+function formatCleanlinessLabel(v: number) {
+  if (v >= 4) return "Buena";
+  if (v <= 2) return "Mala";
+  return "Normal";
+}
+
+function formatPriceLabel(v: number) {
+  if (v >= 4) return "Caro";
+  if (v <= 2) return "Barato";
+  return "Medio";
 }
 
 function getRepeatedIssues(reviews: Review[]) {
@@ -155,6 +245,7 @@ export default function MapClient() {
   const [minRating, setMinRating] = useState<"all" | 1 | 2 | 3 | 4 | 5>("all");
 
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [neighborhoodReviews, setNeighborhoodReviews] = useState<NeighborhoodReview[]>([]);
 
   // ✅ report modal state
   const [reportOpen, setReportOpen] = useState(false);
@@ -209,32 +300,77 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
   return Array.from(map.values());
 }, [filtered]);
 
-  async function loadReviews() {
-    setLoading(true);
+const groupedNeighborhoodReviews = useMemo(() => {
+  const map = new Map<string, NeighborhoodReviewGroup>();
 
-    const { data, error } = await supabase
-      .from("reviews")
-      .select(
-        `
-        id,address,city,province,rating,property_type,rental_type,lat,lng,content,created_at,
-        stay_length,lived_from_year,lived_to_year,price_monthly_eur,would_recommend,noise_level,maintenance_rating,deposit_returned,
-        review_responses(id,owner_id,content,created_at,updated_at)
-      `
-      )
-      .eq("hidden", false)
-      .order("created_at", { ascending: false })
-      .limit(500);
+  for (const r of neighborhoodReviews) {
+    const lat = Number(r.lat);
+    const lng = Number(r.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
 
+    const key = `${r.neighborhood.trim().toLowerCase()}|${r.city.trim().toLowerCase()}|${r.province.trim().toLowerCase()}`;
 
-    setLoading(false);
-
-    if (error) {
-      setReviews([]);
-      return;
+    if (!map.has(key)) {
+      map.set(key, {
+        key,
+        neighborhood: r.neighborhood,
+        city: r.city,
+        province: r.province,
+        lat,
+        lng,
+        reviews: [],
+      });
     }
 
+    map.get(key)!.reviews.push(r);
+  }
+
+  return Array.from(map.values());
+}, [neighborhoodReviews]);
+
+  async function loadReviews() {
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from("reviews")
+    .select(
+      `
+      id,address,city,province,rating,property_type,rental_type,lat,lng,content,created_at,
+      stay_length,lived_from_year,lived_to_year,price_monthly_eur,would_recommend,noise_level,maintenance_rating,deposit_returned,
+      review_responses(id,owner_id,content,created_at,updated_at)
+    `
+    )
+    .eq("hidden", false)
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  const { data: neighborhoodData, error: neighborhoodError } = await supabase
+    .from("neighborhood_reviews")
+    .select(
+      `
+      id,neighborhood,city,province,country,lat,lng,rating,
+      environment_rating,noise_rating,safety_rating,cleanliness_rating,price_rating,
+      content,created_at
+    `
+    )
+    .eq("hidden", false)
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  setLoading(false);
+
+  if (error) {
+    setReviews([]);
+  } else {
     setReviews((data ?? []) as any);
   }
+
+  if (neighborhoodError) {
+    setNeighborhoodReviews([]);
+  } else {
+    setNeighborhoodReviews((neighborhoodData ?? []) as any);
+  }
+}
 
   // ✅ cargar auth/role (no rompe si no hay login)
   useEffect(() => {
@@ -540,8 +676,10 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
         {/* Texto debajo */}
 <div className="mt-3">
   <div className="text-sm text-navy/60">
-    {loading ? "Cargando reseñas..." : `Mostrando ${filtered.length} reseñas en el mapa`}
-  </div>
+  {loading
+    ? "Cargando reseñas..."
+    : `Mostrando ${filtered.length} reseñas de pisos/habitaciones y ${neighborhoodReviews.length} de barrios en el mapa`}
+</div>
 
   {!loading && (
     <div className="mt-1">
@@ -730,6 +868,93 @@ if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
     </Marker>
   );
 })}
+
+{groupedNeighborhoodReviews.map((group) => {
+  const avgRating = averageRating(group.reviews as any);
+  const avgEnvironment = averageNeighborhoodMetric(group.reviews, "environment_rating");
+  const avgNoise = averageNeighborhoodMetric(group.reviews, "noise_rating");
+  const avgSafety = averageNeighborhoodMetric(group.reviews, "safety_rating");
+  const avgCleanliness = averageNeighborhoodMetric(group.reviews, "cleanliness_rating");
+  const avgPrice = averageNeighborhoodMetric(group.reviews, "price_rating");
+
+  const topComments = group.reviews
+    .filter((r) => !!r.content && r.content.trim().length >= 20)
+    .slice(0, 5);
+
+  const neighborhoodLink = `/add-neighborhood-review?neighborhood=${encodeURIComponent(
+    group.neighborhood
+  )}&city=${encodeURIComponent(group.city)}&province=${encodeURIComponent(
+    group.province
+  )}&lat=${encodeURIComponent(String(group.lat))}&lng=${encodeURIComponent(String(group.lng))}`;
+
+  return (
+    <Marker key={group.key} position={[group.lat, group.lng]} icon={NeighborhoodIcon}>
+      <Popup>
+        <div className="w-full max-w-[260px] sm:w-[320px] sm:max-w-none">
+          <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-4">
+            <div className="space-y-1">
+              <div className="text-[13px] sm:text-sm font-semibold text-navy">
+                Barrio {group.neighborhood}
+              </div>
+
+              <div className="text-[13px] sm:text-sm text-navy/80">
+                {avgRating.toFixed(1)}/5 · {group.reviews.length}{" "}
+                {group.reviews.length === 1 ? "reseña" : "reseñas"}
+              </div>
+
+            </div>
+
+            <div className="space-y-1 text-[13px] sm:text-sm">
+              <div>
+                <span className="font-semibold">Ambiente:</span> {avgEnvironment.toFixed(1)}/5 ·{" "}
+                {formatEnvironmentLabel(Math.round(avgEnvironment))}
+              </div>
+              <div>
+                <span className="font-semibold">Ruido:</span> {avgNoise.toFixed(1)}/5 ·{" "}
+                {formatNeighborhoodNoiseLabel(Math.round(avgNoise))}
+              </div>
+              <div>
+                <span className="font-semibold">Seguridad:</span> {avgSafety.toFixed(1)}/5 ·{" "}
+                {formatSafetyLabel(Math.round(avgSafety))}
+              </div>
+              <div>
+                <span className="font-semibold">Limpieza:</span> {avgCleanliness.toFixed(1)}/5 ·{" "}
+                {formatCleanlinessLabel(Math.round(avgCleanliness))}
+              </div>
+              <div>
+                <span className="font-semibold">Precios:</span> {avgPrice.toFixed(1)}/5 ·{" "}
+                {formatPriceLabel(Math.round(avgPrice))}
+              </div>
+            </div>
+
+            {topComments.length > 0 && (
+              <div className="space-y-2">
+                {topComments.map((r) => (
+                  <div
+                    key={r.id}
+                    className="rounded-xl border border-black/10 bg-[#f5f5f5] p-3 text-[13px] sm:text-sm text-navy/90"
+                  >
+                    “{r.content}”
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="pt-1">
+              <Link
+                href={userId ? neighborhoodLink : "/auth"}
+                className="!text-black text-sm font-semibold underline underline-offset-4 hover:opacity-70"
+              >
+                Deja una reseña del barrio
+              </Link>
+            </div>
+          </div>
+        </div>
+      </Popup>
+    </Marker>
+  );
+})}
+
           </MapContainer>
         </div>
       </div>

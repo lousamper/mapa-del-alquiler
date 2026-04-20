@@ -31,6 +31,26 @@ type Review = {
   content: string;
 };
 
+type NeighborhoodReview = {
+  id: string;
+  created_at: string;
+  neighborhood: string;
+  city: string;
+  province: string;
+  country: string;
+  lat: number;
+  lng: number;
+  lived_from_year: number;
+  lived_to_year: number;
+  rating: number;
+  environment_rating: number;
+  noise_rating: number;
+  safety_rating: number;
+  cleanliness_rating: number;
+  price_rating: number;
+  content: string | null;
+};
+
 // ✅ helper geocode (FIX)
 async function geocodeAddress(full: string) {
   const res = await fetch(`/api/geocode?q=${encodeURIComponent(full)}`);
@@ -78,6 +98,14 @@ export default function TenantProfilePage() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  const [neighborhoodReviews, setNeighborhoodReviews] = useState<NeighborhoodReview[]>([]);
+const [neighborhoodReviewsLoading, setNeighborhoodReviewsLoading] = useState(true);
+
+const [editingNeighborhoodId, setEditingNeighborhoodId] = useState<string | null>(null);
+const [editNeighborhoodForm, setEditNeighborhoodForm] = useState<Partial<NeighborhoodReview>>({});
+const [savingNeighborhoodEdit, setSavingNeighborhoodEdit] = useState(false);
+const [deletingNeighborhoodId, setDeletingNeighborhoodId] = useState<string | null>(null);
+
   // ✅ CP solo para edición (no se guarda en DB por ahora)
   const [editPostalCode, setEditPostalCode] = useState("");
 
@@ -86,68 +114,87 @@ export default function TenantProfilePage() {
   }, []);
 
   useEffect(() => {
-    async function load() {
-      setErrorMsg(null);
+  async function load() {
+    setErrorMsg(null);
 
-      // 1) Auth check
-      const { data: auth, error: authErr } = await supabase.auth.getUser();
+    // 1) Auth check
+    const { data: auth, error: authErr } = await supabase.auth.getUser();
 
-      if (authErr) {
-        setErrorMsg(authErr.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!auth.user) {
-        router.push("/auth?role=tenant");
-        return;
-      }
-
-      setUserEmail(auth.user.email ?? null);
-
-      // 2) Load profile
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, role, alias")
-        .eq("id", auth.user.id)
-        .single();
-
-      if (error || !data) {
-        router.push("/");
-        return;
-      }
-
-      // 3) Role protection
-      if (data.role !== "tenant") {
-        router.push("/owner");
-        return;
-      }
-
-      setProfile(data);
+    if (authErr) {
+      setErrorMsg(authErr.message);
       setLoading(false);
-
-      // 4) Load reviews
-      setReviewsLoading(true);
-      const { data: userReviews, error: reviewsErr } = await supabase
-        .from("reviews")
-        .select(
-          "id, created_at, address, city, province, property_type, rental_type, price_monthly_eur, lived_from_year, lived_to_year, stay_length, rating, would_recommend, noise_level, maintenance_rating, deposit_returned, content"
-        )
-        .eq("author_id", auth.user.id)
-        .order("created_at", { ascending: false });
-
-      if (reviewsErr) {
-        setErrorMsg(reviewsErr.message);
-        setReviewsLoading(false);
-        return;
-      }
-
-      setReviews((userReviews ?? []) as Review[]);
-      setReviewsLoading(false);
+      return;
     }
 
-    load();
-  }, [router]);
+    if (!auth.user) {
+      router.push("/auth?role=tenant");
+      return;
+    }
+
+    setUserEmail(auth.user.email ?? null);
+
+    // 2) Load profile
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, role, alias")
+      .eq("id", auth.user.id)
+      .single();
+
+    if (error || !data) {
+      router.push("/");
+      return;
+    }
+
+    // 3) Role protection
+    if (data.role !== "tenant") {
+      router.push("/owner");
+      return;
+    }
+
+    setProfile(data);
+    setLoading(false);
+
+    // 4) Load property reviews
+    setReviewsLoading(true);
+    const { data: userReviews, error: reviewsErr } = await supabase
+      .from("reviews")
+      .select(
+        "id, created_at, address, city, province, property_type, rental_type, price_monthly_eur, lived_from_year, lived_to_year, stay_length, rating, would_recommend, noise_level, maintenance_rating, deposit_returned, content"
+      )
+      .eq("author_id", auth.user.id)
+      .order("created_at", { ascending: false });
+
+    if (reviewsErr) {
+      setErrorMsg(reviewsErr.message);
+      setReviewsLoading(false);
+      return;
+    }
+
+    setReviews((userReviews ?? []) as Review[]);
+    setReviewsLoading(false);
+
+    // 5) Load neighborhood reviews
+    setNeighborhoodReviewsLoading(true);
+    const { data: userNeighborhoodReviews, error: neighborhoodReviewsErr } = await supabase
+      .from("neighborhood_reviews")
+      .select(
+        "id, created_at, neighborhood, city, province, country, lat, lng, lived_from_year, lived_to_year, rating, environment_rating, noise_rating, safety_rating, cleanliness_rating, price_rating, content"
+      )
+      .eq("author_id", auth.user.id)
+      .order("created_at", { ascending: false });
+
+    if (neighborhoodReviewsErr) {
+      setErrorMsg(neighborhoodReviewsErr.message);
+      setNeighborhoodReviewsLoading(false);
+      return;
+    }
+
+    setNeighborhoodReviews((userNeighborhoodReviews ?? []) as NeighborhoodReview[]);
+    setNeighborhoodReviewsLoading(false);
+  }
+
+  load();
+}, [router]);
 
   async function handleChangePassword() {
     setErrorMsg(null);
@@ -182,6 +229,36 @@ export default function TenantProfilePage() {
     return v === "temporal" ? "Temporal" : "Largo plazo";
   }
 
+  function neighborhoodLevelLabel(value: number, type: "environment" | "noise" | "safety" | "cleanliness" | "price") {
+  if (type === "environment") {
+    if (value >= 4) return "Bueno";
+    if (value <= 2) return "Malo";
+    return "Normal";
+  }
+
+  if (type === "noise") {
+    if (value >= 4) return "Alto";
+    if (value <= 2) return "Bajo";
+    return "Medio";
+  }
+
+  if (type === "safety") {
+    if (value >= 4) return "Alta";
+    if (value <= 2) return "Baja";
+    return "Media";
+  }
+
+  if (type === "cleanliness") {
+    if (value >= 4) return "Buena";
+    if (value <= 2) return "Mala";
+    return "Normal";
+  }
+
+  if (value >= 4) return "Caro";
+  if (value <= 2) return "Barato";
+  return "Medio";
+}
+
   function startEdit(r: Review) {
     setInfo(null);
     setErrorMsg(null);
@@ -195,6 +272,18 @@ export default function TenantProfilePage() {
     setEditForm({});
     setEditPostalCode("");
   }
+
+  function startNeighborhoodEdit(r: NeighborhoodReview) {
+  setInfo(null);
+  setErrorMsg(null);
+  setEditingNeighborhoodId(r.id);
+  setEditNeighborhoodForm({ ...r });
+}
+
+function cancelNeighborhoodEdit() {
+  setEditingNeighborhoodId(null);
+  setEditNeighborhoodForm({});
+}
 
   async function saveEdit() {
     if (!editingId) return;
@@ -227,10 +316,10 @@ export default function TenantProfilePage() {
       return;
     }
     if (toYear - fromYear < 1) {
-      setErrorMsg("El rango debe ser mínimo de 1 año para proteger tu anonimato (por ejemplo 2022–2023).");
-      setSavingEdit(false);
-      return;
-    }
+  setErrorMsg("El rango debe ser mínimo de 1 año para proteger tu anonimato (por ejemplo 2022–2023).");
+  setSavingEdit(false);
+  return;
+}
     if (!editForm.content?.trim() || editForm.content.trim().length < 40) {
       setErrorMsg("La reseña debe tener al menos 40 caracteres.");
       setSavingEdit(false);
@@ -312,6 +401,118 @@ export default function TenantProfilePage() {
     cancelEdit();
   }
 
+  async function saveNeighborhoodEdit() {
+  if (!editingNeighborhoodId) return;
+
+  setSavingNeighborhoodEdit(true);
+  setErrorMsg(null);
+  setInfo(null);
+
+  const fromYear = Number(editNeighborhoodForm.lived_from_year);
+  const toYear = Number(editNeighborhoodForm.lived_to_year);
+
+  if (!editNeighborhoodForm.neighborhood?.trim()) {
+    setErrorMsg("El barrio no puede estar vacío.");
+    setSavingNeighborhoodEdit(false);
+    return;
+  }
+
+  if (!editNeighborhoodForm.city?.trim()) {
+    setErrorMsg("La ciudad no puede estar vacía.");
+    setSavingNeighborhoodEdit(false);
+    return;
+  }
+
+  if (!editNeighborhoodForm.province?.trim()) {
+    setErrorMsg("La provincia no puede estar vacía.");
+    setSavingNeighborhoodEdit(false);
+    return;
+  }
+
+  if (!Number.isFinite(fromYear) || !Number.isFinite(toYear)) {
+    setErrorMsg("Revisa los años.");
+    setSavingNeighborhoodEdit(false);
+    return;
+  }
+
+  if (toYear < fromYear) {
+    setErrorMsg("El año final no puede ser menor al año inicial.");
+    setSavingNeighborhoodEdit(false);
+    return;
+  }
+
+  if (
+    editNeighborhoodForm.content?.trim() &&
+    editNeighborhoodForm.content.trim().length > 0 &&
+    editNeighborhoodForm.content.trim().length < 20
+  ) {
+    setErrorMsg("Si añades un comentario, debe tener al menos 20 caracteres.");
+    setSavingNeighborhoodEdit(false);
+    return;
+  }
+
+  if (editNeighborhoodForm.content?.trim() && containsPII(editNeighborhoodForm.content)) {
+    setErrorMsg("Por privacidad, no incluyas emails, teléfonos, enlaces ni datos personales en la reseña.");
+    setSavingNeighborhoodEdit(false);
+    return;
+  }
+
+  const full = [
+    editNeighborhoodForm.neighborhood?.trim(),
+    editNeighborhoodForm.city?.trim(),
+    editNeighborhoodForm.province?.trim(),
+    "España",
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const geo = await geocodeAddress(full);
+
+  const { error } = await supabase
+    .from("neighborhood_reviews")
+    .update({
+      neighborhood: editNeighborhoodForm.neighborhood?.trim(),
+      city: editNeighborhoodForm.city?.trim(),
+      province: editNeighborhoodForm.province?.trim(),
+      lived_from_year: fromYear,
+      lived_to_year: toYear,
+      rating: Number(editNeighborhoodForm.rating),
+      environment_rating: Number(editNeighborhoodForm.environment_rating),
+      noise_rating: Number(editNeighborhoodForm.noise_rating),
+      safety_rating: Number(editNeighborhoodForm.safety_rating),
+      cleanliness_rating: Number(editNeighborhoodForm.cleanliness_rating),
+      price_rating: Number(editNeighborhoodForm.price_rating),
+      content: editNeighborhoodForm.content?.trim() ? editNeighborhoodForm.content.trim() : null,
+      lat: geo?.lat ?? editNeighborhoodForm.lat,
+      lng: geo?.lng ?? editNeighborhoodForm.lng,
+    })
+    .eq("id", editingNeighborhoodId);
+
+  setSavingNeighborhoodEdit(false);
+
+  if (error) {
+    setErrorMsg(error.message);
+    return;
+  }
+
+  setNeighborhoodReviews((prev) =>
+    prev.map((r) =>
+      r.id === editingNeighborhoodId
+        ? ({
+            ...(r as any),
+            ...(editNeighborhoodForm as any),
+            lat: geo?.lat ?? editNeighborhoodForm.lat ?? r.lat,
+            lng: geo?.lng ?? editNeighborhoodForm.lng ?? r.lng,
+            content: editNeighborhoodForm.content?.trim() ? editNeighborhoodForm.content.trim() : null,
+          } as NeighborhoodReview)
+        : r
+    )
+  );
+
+  setInfo("Reseña de barrio actualizada.");
+  cancelNeighborhoodEdit();
+}
+
   async function deleteReview(id: string) {
     setErrorMsg(null);
     setInfo(null);
@@ -330,6 +531,26 @@ export default function TenantProfilePage() {
     setInfo("Reseña eliminada.");
     if (editingId === id) cancelEdit();
   }
+
+  async function deleteNeighborhoodReview(id: string) {
+  setErrorMsg(null);
+  setInfo(null);
+  setDeletingNeighborhoodId(id);
+
+  const { error } = await supabase.from("neighborhood_reviews").delete().eq("id", id);
+
+  setDeletingNeighborhoodId(null);
+
+  if (error) {
+    setErrorMsg(error.message);
+    return;
+  }
+
+  setNeighborhoodReviews((prev) => prev.filter((r) => r.id !== id));
+  setInfo("Reseña de barrio eliminada.");
+  if (editingNeighborhoodId === id) cancelNeighborhoodEdit();
+}
+
 
   if (loading) return null;
 
@@ -701,6 +922,319 @@ export default function TenantProfilePage() {
             )}
           </div>
         </div>
+
+        <div className="mt-10">
+  <h2 className="text-xl font-extrabold text-navy">Tus reseñas de barrio</h2>
+
+  <div className="mt-4 space-y-4">
+    {neighborhoodReviewsLoading ? (
+      <div className="rounded-2xl bg-white border border-black/10 p-6">
+        <p className="text-navy/70">Cargando reseñas de barrio...</p>
+      </div>
+    ) : neighborhoodReviews.length === 0 ? (
+      <div className="rounded-2xl bg-white border border-black/10 p-6">
+        <p className="text-navy/70">Aún no has creado ninguna reseña de barrio.</p>
+
+        <button
+          onClick={() => router.push("/add-neighborhood-review")}
+          className="mt-4 rounded-full bg-primary px-6 py-3 font-semibold text-background hover:opacity-90"
+        >
+          Crear mi primera reseña de barrio
+        </button>
+      </div>
+    ) : (
+      <>
+        {neighborhoodReviews.map((r) => {
+          const isEditing = editingNeighborhoodId === r.id;
+
+          return (
+            <div key={r.id} className="rounded-2xl bg-white border border-black/10 p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-navy">
+                    Barrio {r.neighborhood}
+                  </p>
+                  <p className="mt-1 text-xs text-navy/60">
+                    {r.city}, {r.province}
+                  </p>
+                  <p className="mt-1 text-xs text-navy/60">
+                    Viviste entre {r.lived_from_year} y {r.lived_to_year}
+                  </p>
+                </div>
+
+                {!isEditing && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => startNeighborhoodEdit(r)}
+                      className="rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-navy hover:bg-black/5"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => deleteNeighborhoodReview(r.id)}
+                      disabled={deletingNeighborhoodId === r.id}
+                      className="rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-navy hover:bg-black/5 disabled:opacity-60"
+                    >
+                      {deletingNeighborhoodId === r.id ? "Borrando..." : "Borrar"}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {!isEditing ? (
+                <>
+                  {r.content && (
+                    <div className="mt-4">
+                      <p className="text-sm text-navy/80 whitespace-pre-line">{r.content}</p>
+                    </div>
+                  )}
+
+                  <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                    <span className="rounded-full border border-black/10 px-3 py-1 text-navy/80">
+                      Rating: {r.rating}/5
+                    </span>
+                    <span className="rounded-full border border-black/10 px-3 py-1 text-navy/80">
+                      Ambiente: {r.environment_rating}/5 · {neighborhoodLevelLabel(r.environment_rating, "environment")}
+                    </span>
+                    <span className="rounded-full border border-black/10 px-3 py-1 text-navy/80">
+                      Ruido: {r.noise_rating}/5 · {neighborhoodLevelLabel(r.noise_rating, "noise")}
+                    </span>
+                    <span className="rounded-full border border-black/10 px-3 py-1 text-navy/80">
+                      Seguridad: {r.safety_rating}/5 · {neighborhoodLevelLabel(r.safety_rating, "safety")}
+                    </span>
+                    <span className="rounded-full border border-black/10 px-3 py-1 text-navy/80">
+                      Limpieza: {r.cleanliness_rating}/5 · {neighborhoodLevelLabel(r.cleanliness_rating, "cleanliness")}
+                    </span>
+                    <span className="rounded-full border border-black/10 px-3 py-1 text-navy/80">
+                      Precios: {r.price_rating}/5 · {neighborhoodLevelLabel(r.price_rating, "price")}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-navy">Barrio</label>
+                      <input
+                        value={editNeighborhoodForm.neighborhood ?? ""}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({ ...p, neighborhood: e.target.value }))
+                        }
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-navy">Ciudad</label>
+                      <input
+                        value={editNeighborhoodForm.city ?? ""}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({ ...p, city: e.target.value }))
+                        }
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-navy">Provincia</label>
+                      <input
+                        value={editNeighborhoodForm.province ?? ""}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({ ...p, province: e.target.value }))
+                        }
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-navy">Rating general</label>
+                      <select
+                        value={Number(editNeighborhoodForm.rating ?? r.rating)}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({ ...p, rating: Number(e.target.value) }))
+                        }
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      >
+                        {[5, 4, 3, 2, 1].map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-navy">Desde (año)</label>
+                      <input
+                        value={editNeighborhoodForm.lived_from_year ?? r.lived_from_year}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({
+                            ...p,
+                            lived_from_year: Number(e.target.value),
+                          }))
+                        }
+                        inputMode="numeric"
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-navy">Hasta (año)</label>
+                      <input
+                        value={editNeighborhoodForm.lived_to_year ?? r.lived_to_year}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({
+                            ...p,
+                            lived_to_year: Number(e.target.value),
+                          }))
+                        }
+                        inputMode="numeric"
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-navy">Ambiente</label>
+                      <select
+                        value={Number(editNeighborhoodForm.environment_rating ?? r.environment_rating)}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({
+                            ...p,
+                            environment_rating: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      >
+                        {[5, 4, 3, 2, 1].map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-navy">Ruido</label>
+                      <select
+                        value={Number(editNeighborhoodForm.noise_rating ?? r.noise_rating)}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({
+                            ...p,
+                            noise_rating: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      >
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-navy">Seguridad</label>
+                      <select
+                        value={Number(editNeighborhoodForm.safety_rating ?? r.safety_rating)}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({
+                            ...p,
+                            safety_rating: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      >
+                        {[5, 4, 3, 2, 1].map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-navy">Limpieza</label>
+                      <select
+                        value={Number(editNeighborhoodForm.cleanliness_rating ?? r.cleanliness_rating)}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({
+                            ...p,
+                            cleanliness_rating: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      >
+                        {[5, 4, 3, 2, 1].map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2 sm:col-span-2">
+                      <label className="text-sm font-semibold text-navy">Precios</label>
+                      <select
+                        value={Number(editNeighborhoodForm.price_rating ?? r.price_rating)}
+                        onChange={(e) =>
+                          setEditNeighborhoodForm((p) => ({
+                            ...p,
+                            price_rating: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                      >
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 space-y-2">
+                    <label className="text-sm font-semibold text-navy">Comentario</label>
+                    <textarea
+                      value={editNeighborhoodForm.content ?? r.content ?? ""}
+                      onChange={(e) =>
+                        setEditNeighborhoodForm((p) => ({ ...p, content: e.target.value }))
+                      }
+                      className="w-full min-h-[120px] rounded-xl border border-black/10 bg-white px-4 py-3 text-navy"
+                    />
+                    <p className="text-xs text-navy/60">
+                      Opcional. Si escribes algo, mínimo 20 caracteres.
+                    </p>
+                  </div>
+
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={saveNeighborhoodEdit}
+                      disabled={savingNeighborhoodEdit}
+                      className="rounded-full bg-primary px-6 py-3 font-semibold text-background hover:opacity-90 disabled:opacity-60"
+                    >
+                      {savingNeighborhoodEdit ? "Guardando..." : "Guardar cambios"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={cancelNeighborhoodEdit}
+                      className="rounded-full border border-black/10 px-6 py-3 font-semibold text-navy hover:bg-black/5"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </>
+    )}
+  </div>
+</div>
 
         <div className="mt-10">
           <h2 className="text-xl font-extrabold text-navy">Cuenta</h2>

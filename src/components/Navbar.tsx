@@ -33,15 +33,19 @@ export default function Navbar() {
     const authed = user ? [{ href: profileHref, label: "Mi perfil" }] : [];
 
     const tenantOnly =
-      role === "tenant"
-        ? [{ href: "/add-review", label: "Dejar una reseña" }]
-        : !user
-          ? [{ href: "/auth?role=tenant", label: "Dejar una reseña" }]
-          : [];
+  role === "tenant"
+    ? [{ href: "/add-review", label: "Deja una reseña" }]
+    : !user
+      ? [{ href: "/auth?role=tenant", label: "Deja una reseña" }]
+      : [];
+
+    const neighborhoodLink = user
+  ? [{ href: "/add-neighborhood-review", label: "Puntúa tu barrio" }]
+  : [{ href: "/auth", label: "Puntúa tu barrio" }];
 
     const login = !user ? [{ href: "/auth", label: "Iniciar sesión" }] : [];
 
-    const all = [...base, ...adminOnly, ...authed, ...tenantOnly, ...login];
+    const all = [...base, ...adminOnly, ...authed, ...tenantOnly, ...neighborhoodLink, ...login];
 
     // ✅ evitar duplicados por href
     return Array.from(new Map(all.map((x) => [x.href, x])).values());
