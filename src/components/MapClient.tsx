@@ -105,7 +105,7 @@ const NeighborhoodIcon = new L.DivIcon({
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
-      filter: hue-rotate(90deg) saturate(2.4) brightness(1);
+      filter: hue-rotate(90deg) saturate(2) brightness(1);
     "></div>
   `,
   className: "",
@@ -170,33 +170,43 @@ function averageNeighborhoodMetric(
 }
 
 function formatEnvironmentLabel(v: number) {
-  if (v >= 4) return "Bueno";
-  if (v <= 2) return "Malo";
-  return "Normal";
+  if (v === 5) return "Muy bueno";
+  if (v === 4) return "Bueno";
+  if (v === 3) return "Normal";
+  if (v === 2) return "Malo";
+  return "Muy malo";
 }
 
 function formatNeighborhoodNoiseLabel(v: number) {
-  if (v >= 4) return "Alto";
-  if (v <= 2) return "Bajo";
-  return "Medio";
+  if (v === 5) return "Muy ruidoso";
+  if (v === 4) return "Ruidoso";
+  if (v === 3) return "Ni tan ruidoso ni tan silencioso";
+  if (v === 2) return "Silencioso";
+  return "Muy silencioso";
 }
 
 function formatSafetyLabel(v: number) {
-  if (v >= 4) return "Alta";
-  if (v <= 2) return "Baja";
-  return "Media";
+  if (v === 5) return "Muy seguro";
+  if (v === 4) return "Seguro";
+  if (v === 3) return "Medio";
+  if (v === 2) return "Inseguro";
+  return "Muy inseguro";
 }
 
 function formatCleanlinessLabel(v: number) {
-  if (v >= 4) return "Buena";
-  if (v <= 2) return "Mala";
-  return "Normal";
+  if (v === 5) return "Muy buena";
+  if (v === 4) return "Buena";
+  if (v === 3) return "Normal";
+  if (v === 2) return "Mala";
+  return "Muy mala";
 }
 
 function formatPriceLabel(v: number) {
-  if (v >= 4) return "Caro";
-  if (v <= 2) return "Barato";
-  return "Medio";
+  if (v === 5) return "Muy caro";
+  if (v === 4) return "Caro";
+  if (v === 3) return "Medio";
+  if (v === 2) return "Barato";
+  return "Muy barato";
 }
 
 function getRepeatedIssues(reviews: Review[]) {
@@ -878,8 +888,9 @@ const groupedNeighborhoodReviews = useMemo(() => {
   const avgPrice = averageNeighborhoodMetric(group.reviews, "price_rating");
 
   const topComments = group.reviews
-    .filter((r) => !!r.content && r.content.trim().length >= 20)
-    .slice(0, 5);
+  .filter((r) => !!r.content && r.content.trim().length >= 20)
+  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  .slice(0, 5);
 
   const neighborhoodLink = `/add-neighborhood-review?neighborhood=${encodeURIComponent(
     group.neighborhood
@@ -928,17 +939,20 @@ const groupedNeighborhoodReviews = useMemo(() => {
             </div>
 
             {topComments.length > 0 && (
-              <div className="space-y-2">
-                {topComments.map((r) => (
-                  <div
-                    key={r.id}
-                    className="rounded-xl border border-black/10 bg-[#f5f5f5] p-3 text-[13px] sm:text-sm text-navy/90"
-                  >
-                    “{r.content}”
-                  </div>
-                ))}
-              </div>
-            )}
+  <div className="space-y-2">
+    <div className="text-[12px] sm:text-xs text-navy/60 tracking-wide">
+      Comentarios más recientes
+    </div>
+    {topComments.map((r) => (
+      <div
+        key={r.id}
+        className="rounded-xl border border-black/10 bg-[#f5f5f5] p-3 text-[13px] sm:text-sm text-navy/90"
+      >
+        "{r.content}"
+      </div>
+    ))}
+  </div>
+)}
 
             <div className="pt-1">
               <Link

@@ -229,7 +229,7 @@ export default function AddNeighborhoodReviewPage() {
                 <label className="text-sm font-semibold text-navy">Barrio</label>
                 <input
   value={neighborhood}
-  onChange={(e) => setNeighborhood(normalizeNeighborhoodName(e.target.value))}
+  onChange={(e) => setNeighborhood(e.target.value)}
                   className={inputClass}
                   placeholder="Ej: Ruzafa"
                 />
