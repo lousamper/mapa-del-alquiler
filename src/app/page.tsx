@@ -238,7 +238,7 @@ export default function Home() {
           ¿Tiene algún coste?
         </summary>
         <p className="mt-3 text-sm text-navy/80">
-          No. Usar la plataforma es gratuita.
+          No. El uso de la plataforma es gratuito.
         </p>
       </details>
 

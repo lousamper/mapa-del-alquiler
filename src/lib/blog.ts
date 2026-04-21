@@ -7,6 +7,10 @@ import {
   meta as mercadoMeta,
   content as mercadoContent,
 } from "@/content/blog/mercado-inmobiliario-en-espana";
+import {
+  meta as resenasMeta,
+  content as resenasContent,
+} from "@/content/blog/por-que-ver-resenas-antes-de-alquilar";
 
 export type BlogPostMeta = {
   title: string;
@@ -36,6 +40,12 @@ const POSTS = [
   meta: mercadoMeta as BlogPostMeta,
   content: mercadoContent,
 },
+
+{
+    slug: "por-que-ver-resenas-antes-de-alquilar",
+    meta: resenasMeta as BlogPostMeta,
+    content: resenasContent,
+  },
 
 ];
 
