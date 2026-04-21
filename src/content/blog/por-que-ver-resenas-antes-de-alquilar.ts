@@ -1,7 +1,7 @@
 export const meta = {
   title: "Por qué es necesario ver reseñas reales antes de alquilar un piso (ahora más que nunca)",
   description:
-    "Cada vez es más importante conocer experiencias reales antes de alquilar.",
+    "Cada vez es más importante conocer experiencias reales antes de alquilar un piso o una habitación.",
   date: "2026-04-21",
 };
 
