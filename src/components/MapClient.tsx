@@ -685,11 +685,14 @@ const groupedNeighborhoodReviews = useMemo(() => {
 
         {/* Texto debajo */}
 <div className="mt-3">
+  {/* Contador oculto por ahora */}
+  {/*
   <div className="text-sm text-navy/60">
-  {loading
-    ? "Cargando reseñas..."
-    : `Mostrando ${filtered.length} reseñas de pisos/habitaciones y ${neighborhoodReviews.length} de barrios en el mapa`}
-</div>
+    {loading
+      ? "Cargando reseñas..."
+      : `Mostrando ${filtered.length} reseñas de pisos/habitaciones y ${neighborhoodReviews.length} de barrios en el mapa`}
+  </div>
+  */}
 
   {!loading && (
     <div className="mt-1">
