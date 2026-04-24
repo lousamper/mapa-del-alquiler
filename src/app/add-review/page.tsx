@@ -45,6 +45,42 @@ function containsPII(text: string) {
   return email.test(t) || phone.test(t) || url.test(t) || contactWords.test(t);
 }
 
+// ✅ Moderación básica: palabras ofensivas o no permitidas
+function normalizeText(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // quita acentos
+    .replace(/[^a-z0-9ñ\s]/g, " "); // quita símbolos
+}
+
+function containsBannedLanguage(text: string) {
+  const normalized = normalizeText(text);
+
+  const bannedWords = [
+    "guiri",
+    "gilipollas",
+    "imbecil",
+    "idiota",
+    "subnormal",
+    "retrasado",
+    "puta",
+    "puto",
+    "mierda",
+    "cabrón",
+    "cabron",
+    "zorra",
+    "asqueroso",
+    "asquerosa",
+  ];
+
+  return bannedWords.some((word) => {
+    const cleanWord = normalizeText(word).trim();
+    const regex = new RegExp(`\\b${cleanWord}\\b`, "i");
+    return regex.test(normalized);
+  });
+}
+
 export default function AddReviewPage() {
   const router = useRouter();
 
@@ -150,6 +186,11 @@ export default function AddReviewPage() {
     if (containsPII(content)) {
       return "Por privacidad, no incluyas emails, teléfonos, enlaces ni datos personales en la reseña.";
     }
+
+    // ✅ Bloqueo de insultos / lenguaje no permitido
+if (containsBannedLanguage(content)) {
+  return "Tu reseña contiene lenguaje que no está permitido. Por favor céntrate en describir la vivienda, la experiencia y los hechos, sin insultos ni referencias a colectivos.";
+}
 
     // “Guardrails” básicos (bloquea)
     const lower = content.toLowerCase();
