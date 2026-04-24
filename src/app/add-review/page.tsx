@@ -73,6 +73,8 @@ function containsBannedLanguage(text: string) {
     "asqueroso",
     "asquerosa",
     "tonto",
+    "boludo",
+    "boluda",
   ];
 
   return bannedWords.some((word) => {

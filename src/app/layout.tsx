@@ -18,21 +18,35 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.elmapadelalquiler.es";
 
 const title = "El Mapa del Alquiler | Reseñas de pisos y habitaciones de alquiler en España";
 const description =
-  "Opiniones anónimas de pisos y habitaciones en España para alquilar con más información y menos riesgo. ¿Viviste en un piso que debería tener reseña? Compártela aquí.";
+  "Lee y comparte opiniones anónimas reales de pisos en España, también Reseñas de barrios para saber cómo es realmente vivir en cada zona. Alquila con más información.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
   description,
   applicationName: title,
+
+
+  alternates: {
+    canonical: siteUrl,
+  },
+
   robots: {
     index: true,
     follow: true,
-  },
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+     },
+
   openGraph: {
     title,
     description,
@@ -61,6 +75,8 @@ export const metadata: Metadata = {
   other: {
     "google-adsense-account": process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID ?? "",
   },
+
+  
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -80,6 +96,48 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ) : null}
 
         <AdsGate clientId={process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? ""} />
+
+        <Script
+  id="schema-website"
+  type="application/ld+json"
+  strategy="afterInteractive"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "El Mapa del Alquiler",
+      url: siteUrl,
+      description,
+      inLanguage: "es-ES",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${siteUrl}/map?q={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    }),
+  }}
+/>
+
+<Script
+    id="schema-organization"
+    type="application/ld+json"
+    strategy="afterInteractive"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "El Mapa del Alquiler",
+        url: siteUrl,
+        logo: `${siteUrl}/og.png`,
+        sameAs: [
+          "https://www.linkedin.com/company/mapadelalquiler",
+          "https://www.tiktok.com/@elmapadelalquiler",
+          "https://www.instagram.com/mapadelalquiler",
+          "https://x.com/mapadelalquiler"
+        ],
+      }),
+    }}
+  />
 
         {children}
         <Footer />
