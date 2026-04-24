@@ -22,7 +22,7 @@ export default function Home() {
 
         <div className="relative mx-auto flex min-h-[82vh] max-w-6xl flex-col items-center justify-center px-6 text-center">
           <h1 className="text-3xl font-black tracking-tight text-navy md:text-5xl md:font-extrabold">
-            EXPLORA OPINIONES
+            EXPLORA RESEÑAS
             <br />
             DE PISOS Y HABITACIONES EN TU CIUDAD
           </h1>
@@ -242,7 +242,6 @@ export default function Home() {
         </p>
       </details>
 
-      <div className="mt-3 space-y-1">
         <details className="rounded-2xl bg-white border border-black/10 p-5">
   <summary className="cursor-pointer list-none font-semibold text-navy">
     ¿Por qué existe El Mapa del Alquiler?
@@ -261,7 +260,16 @@ export default function Home() {
     </a>
   </p>
 </details>
-      </div>
+
+<details className="rounded-2xl bg-white border border-black/10 p-5">
+  <summary className="cursor-pointer list-none font-semibold text-navy">
+    ¿Puedo buscar reseñas de pisos en España?
+  </summary>
+  <p className="mt-3 text-sm text-navy/80">
+    Sí. Puedes buscar reseñas de pisos, habitaciones y barrios en distintas ciudades de España para conocer experiencias reales antes de alquilar.
+  </p>
+</details>
+
       
     </div>
 
