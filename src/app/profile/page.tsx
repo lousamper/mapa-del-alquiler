@@ -80,6 +80,77 @@ function containsPII(text: string) {
   return email.test(t) || phone.test(t) || url.test(t) || contactWords.test(t);
 }
 
+// ✅ Moderación básica: palabras ofensivas o no permitidas
+function normalizeText(text: string) {
+  return (text ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function containsBannedLanguage(text: string) {
+  const normalized = normalizeText(text);
+  const compact = normalized.replace(/\s/g, "");
+
+  const bannedWords = [
+    "guiri",
+    "gilipollas",
+    "imbecil",
+    "idiota",
+    "subnormal",
+    "retrasado",
+    "retrasada",
+    "cabron",
+    "zorra",
+    "asqueroso",
+    "asquerosa",
+    "tonto",
+  ];
+
+  return bannedWords.some((word) => {
+    const cleanWord = normalizeText(word);
+    const regex = new RegExp(`\\b${cleanWord}\\b`, "i");
+    return regex.test(normalized) || compact.includes(cleanWord);
+  });
+}
+
+function containsContextualInsult(text: string) {
+  const normalized = normalizeText(text);
+
+  const contextualInsults = ["mierda", "puto", "puta"];
+
+  const personTargets = [
+    "casero",
+    "casera",
+    "propietario",
+    "propietaria",
+    "dueno",
+    "duena",
+    "arrendador",
+    "arrendadora",
+    "inmobiliaria",
+    "agente",
+  ];
+
+  return contextualInsults.some((insult) => {
+    const cleanInsult = normalizeText(insult);
+
+    return personTargets.some((target) => {
+      const cleanTarget = normalizeText(target);
+
+      const pattern = new RegExp(
+        `\\b(${cleanInsult})\\b.{0,25}\\b(${cleanTarget})\\b|\\b(${cleanTarget})\\b.{0,25}\\b(${cleanInsult})\\b`,
+        "i"
+      );
+
+      return pattern.test(normalized);
+    });
+  });
+}
+
 export default function TenantProfilePage() {
   const router = useRouter();
 
@@ -327,11 +398,23 @@ function cancelNeighborhoodEdit() {
     }
 
     // ✅ Bloqueo de datos personales (añadido)
-    if (containsPII(editForm.content)) {
+    if (containsPII(editForm.content ?? "")) {
       setErrorMsg("Por privacidad, no incluyas emails, teléfonos, enlaces ni datos personales en la reseña.");
       setSavingEdit(false);
       return;
     }
+
+    if (containsBannedLanguage(editForm.content ?? "")) {
+  setErrorMsg("Evita insultos o referencias a personas/colectivos. Intenta centrarte en el piso y tu experiencia 🙂");
+  setSavingEdit(false);
+  return;
+}
+
+if (containsContextualInsult(editForm.content ?? "")) {
+  setErrorMsg("Evita descalificaciones hacia personas. Intenta centrarte en el piso, la vivienda y tu experiencia 🙂");
+  setSavingEdit(false);
+  return;
+}
 
     // ✅ Recalcular lat/lng con CP (si lo completaron) (FIX: sin comas vacías)
     const parts = [
@@ -456,6 +539,24 @@ function cancelNeighborhoodEdit() {
     setSavingNeighborhoodEdit(false);
     return;
   }
+
+  if (
+  editNeighborhoodForm.content?.trim() &&
+  containsBannedLanguage(editNeighborhoodForm.content)
+) {
+  setErrorMsg("Evita insultos o referencias a personas/colectivos. Intenta centrarte en el barrio y tu experiencia 🙂");
+  setSavingNeighborhoodEdit(false);
+  return;
+}
+
+if (
+  editNeighborhoodForm.content?.trim() &&
+  containsContextualInsult(editNeighborhoodForm.content)
+) {
+  setErrorMsg("Evita descalificaciones hacia personas. Intenta centrarte en el barrio y tu experiencia 🙂");
+  setSavingNeighborhoodEdit(false);
+  return;
+}
 
   const full = [
     editNeighborhoodForm.neighborhood?.trim(),
