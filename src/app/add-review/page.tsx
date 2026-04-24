@@ -58,6 +58,7 @@ function normalizeText(text: string) {
 
 function containsBannedLanguage(text: string) {
   const normalized = normalizeText(text);
+  const compact = normalized.replace(/\s/g, "");
 
   const bannedWords = [
     "guiri",
@@ -66,20 +67,52 @@ function containsBannedLanguage(text: string) {
     "idiota",
     "subnormal",
     "retrasado",
-    "puta",
-    "puto",
-    "mierda",
-    "cabrón",
+    "retrasada",
     "cabron",
     "zorra",
     "asqueroso",
     "asquerosa",
+    "tonto",
   ];
 
   return bannedWords.some((word) => {
-    const cleanWord = normalizeText(word).trim();
+    const cleanWord = normalizeText(word);
     const regex = new RegExp(`\\b${cleanWord}\\b`, "i");
-    return regex.test(normalized);
+    return regex.test(normalized) || compact.includes(cleanWord);
+  });
+}
+
+function containsContextualInsult(text: string) {
+  const normalized = normalizeText(text);
+
+  const contextualInsults = ["mierda", "puto", "puta"];
+
+  const personTargets = [
+    "casero",
+    "casera",
+    "propietario",
+    "propietaria",
+    "dueno",
+    "duena",
+    "arrendador",
+    "arrendadora",
+    "inmobiliaria",
+    "agente",
+  ];
+
+  return contextualInsults.some((insult) => {
+    const cleanInsult = normalizeText(insult);
+
+    return personTargets.some((target) => {
+      const cleanTarget = normalizeText(target);
+
+      const pattern = new RegExp(
+        `\\b(${cleanInsult})\\b.{0,25}\\b(${cleanTarget})\\b|\\b(${cleanTarget})\\b.{0,25}\\b(${cleanInsult})\\b`,
+        "i"
+      );
+
+      return pattern.test(normalized);
+    });
   });
 }
 
@@ -191,7 +224,11 @@ export default function AddReviewPage() {
 
     // ✅ Bloqueo de insultos / lenguaje no permitido
 if (containsBannedLanguage(content)) {
-  return "Tu reseña contiene lenguaje que no está permitido. Por favor céntrate en describir la vivienda, la experiencia y los hechos, sin insultos ni referencias a colectivos.";
+  return "Evita insultos o referencias a personas/colectivos. Intenta centrarte en el piso y tu experiencia 🙂";
+}
+
+if (containsContextualInsult(content)) {
+  return "Evita descalificaciones hacia personas. Intenta centrarte en el piso, la vivienda y tu experiencia 🙂";
 }
 
     // “Guardrails” básicos (bloquea)
