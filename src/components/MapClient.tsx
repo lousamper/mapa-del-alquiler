@@ -595,6 +595,10 @@ const groupedNeighborhoodReviews = useMemo(() => {
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-6">
+      <h1 className="mb-1 text-sm md:text-base font-bold text-navy">
+  Reseñas de pisos y habitaciones en España
+</h1>
+
       {/* Buscador + filtros */}
       <div className="rounded-2xl bg-white border border-black/10 p-4">
         <form onSubmit={handleSearch} className="flex flex-col gap-3">
@@ -1117,6 +1121,25 @@ const groupedNeighborhoodReviews = useMemo(() => {
           </div>
         </div>
       )}
+
+      <div className="mt-6 rounded-2xl bg-white border border-black/10 p-5">
+  <p className="text-sm text-navy/70 max-w-2xl">
+    Explora en el mapa reseñas reales de pisos y habitaciones en España, y descubre cómo es vivir
+    realmente en cada zona a través de opiniones anónimas de otros inquilinos. 
+  </p>
+
+  <div className="mt-3 flex flex-wrap gap-2 text-xs md:text-sm text-navy/70">
+    <span className="rounded-full bg-[#f5f5f5] px-3 py-1">
+      Reseñas de pisos en España
+    </span>
+    <span className="rounded-full bg-[#f5f5f5] px-3 py-1">
+      Reseñas de habitaciones en España
+    </span>
+    <span className="rounded-full bg-[#f5f5f5] px-3 py-1">
+      Opiniones de barrios en España
+    </span>
+  </div>
+</div>
     </section>
   );
 }
