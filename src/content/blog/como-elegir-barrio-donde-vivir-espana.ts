@@ -1,16 +1,12 @@
 export const meta = {
   title: "Cómo elegir el barrio donde vivir en España (antes de alquilar o comprar)",
   description:
-    "No solo importa el piso: elegir bien el barrio puede cambiar por completo tu experiencia. Qué tener en cuenta antes de decidir.",
-  date: "2026-04-21",
+    "No solo importa el piso: elegir bien el barrio puede cambiar por completo tu experiencia.",
+  date: "2026-05-05",
 };
 
 export const content = `
-Cuando buscamos vivienda, solemos centrarnos en el piso: metros, precio, fotos, ubicación aproximada.
-
-Pero hay una decisión que influye incluso más en tu día a día:
-
-El barrio.
+Cuando buscamos vivienda solemos centrarnos en el piso pero hay una decisión que influye incluso más en tu día a día: El barrio.
 
 Elegir bien dónde vivir puede marcar la diferencia entre una buena experiencia… o una que quieres abandonar en pocos meses.
 
@@ -36,7 +32,7 @@ Por eso, no es solo una cuestión de ubicación. Es una cuestión de calidad de 
 
 Antes de decidirte, intenta analizar varios factores más allá de lo evidente.
 
-### 1. Conexión y movilidad
+**Conexión y movilidad**
 
 - ¿Está bien conectado con tu trabajo o universidad?  
 - ¿Hay transporte público cercano?  
@@ -44,9 +40,8 @@ Antes de decidirte, intenta analizar varios factores más allá de lo evidente.
 
 Un barrio mal conectado puede complicar tu día a día más de lo que parece.
 
----
 
-### 2. Ruido y ambiente
+**Ruido y ambiente**
 
 No es lo mismo vivir en una zona tranquila que en una con bares, tráfico o turismo constante.
 
@@ -58,9 +53,8 @@ Si puedes, visita el barrio en distintos momentos:
 
 La percepción cambia mucho según la hora.
 
----
 
-### 3. Servicios y vida diaria
+**Servicios y vida diaria**
 
 Un barrio cómodo es aquel donde tienes cerca lo que necesitas:
 
@@ -71,9 +65,8 @@ Un barrio cómodo es aquel donde tienes cerca lo que necesitas:
 
 Esto impacta directamente en tu calidad de vida.
 
----
 
-### 4. Estado general de la zona
+**Estado general de la zona**
 
 Observa:
 
@@ -83,9 +76,8 @@ Observa:
 
 Suelen ser señales bastante fiables de cómo es vivir allí.
 
----
 
-### 5. Tipo de vecinos y dinámica del barrio
+**Tipo de vecinos y dinámica del barrio**
 
 Algunas zonas tienen más rotación (turismo, alquiler temporal), otras son más estables.
 
@@ -109,21 +101,6 @@ No sabes:
 - si hay dinámicas que no aparecen en el anuncio  
 
 Y muchas veces eso es lo que más afecta después.
-
----
-
-## Elegir barrio no es solo una decisión económica
-
-Es fácil caer en elegir solo por precio.
-
-Pero vivir en una zona más barata puede implicar:
-
-- peor conexión  
-- más ruido  
-- menos servicios  
-- peor experiencia general  
-
-Y al revés: pagar más no siempre garantiza vivir mejor.
 
 ---
 

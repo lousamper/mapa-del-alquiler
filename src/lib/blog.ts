@@ -11,6 +11,11 @@ import {
   meta as resenasMeta,
   content as resenasContent,
 } from "@/content/blog/por-que-ver-resenas-antes-de-alquilar";
+import {
+  meta as barrioMeta,
+  content as barrioContent,
+} from "@/content/blog/como-elegir-barrio-donde-vivir-espana";
+
 
 export type BlogPostMeta = {
   title: string;
@@ -47,7 +52,14 @@ const POSTS = [
     content: resenasContent,
   },
 
+  {
+  slug: "como-elegir-barrio-donde-vivir-espana",
+  meta: barrioMeta as BlogPostMeta,
+  content: barrioContent,
+},
+
 ];
+
 
 export function getAllPosts(): BlogPost[] {
   return POSTS.map(({ slug, meta }) => ({ slug, meta })).sort((a, b) =>
