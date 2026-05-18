@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import { supabase } from "@/lib/supabaseClient";
 import { useSearchParams } from "next/navigation";
@@ -113,6 +114,42 @@ const NeighborhoodIcon = new L.DivIcon({
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
 });
+
+function createPinkClusterIcon(cluster: any) {
+  const count = cluster.getChildCount();
+
+  return L.divIcon({
+    html: `
+      <div style="
+        width: 52px;
+        height: 52px;
+        border-radius: 9999px;
+        background: rgba(255, 142, 209, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <div style="
+          width: 40px;
+          height: 40px;
+          border-radius: 9999px;
+          background: #ff8ed1;
+          color: #0b1f3b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          font-size: 15px;
+          box-shadow: 0 4px 12px rgba(11, 31, 59, 0.18);
+        ">
+          ${count}
+        </div>
+      </div>
+    `,
+    className: "custom-review-cluster",
+    iconSize: L.point(52, 52, true),
+  });
+}
 
 function pinColor(rating: number) {
   if (rating >= 4) return "🟢";
@@ -718,6 +755,14 @@ const groupedNeighborhoodReviews = useMemo(() => {
             <SetView center={center} />
             <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
+<MarkerClusterGroup
+  chunkedLoading
+  iconCreateFunction={createPinkClusterIcon}
+  showCoverageOnHover={false}
+  spiderfyOnMaxZoom={false}
+  disableClusteringAtZoom={10}
+>
+
             {groupedReviews.map((group) => {
   const avg = averageRating(group.reviews);
   const repeatedIssues = getRepeatedIssues(group.reviews);
@@ -975,6 +1020,7 @@ const groupedNeighborhoodReviews = useMemo(() => {
     </Marker>
   );
 })}
+</MarkerClusterGroup>
 
           </MapContainer>
         </div>

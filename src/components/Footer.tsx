@@ -115,7 +115,7 @@ export default function Footer() {
                 <img
                   src="/x.png"
                   alt="X"
-                  className="h-7 w-7 object-contain"
+                  className="h-6 w-6 object-contain"
                 />
               </a>
             </div>
